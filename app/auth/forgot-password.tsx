@@ -19,11 +19,6 @@ export default function ForgotPasswordScreen() {
     if (!verifyEmail(email, setError)) return;
 
     try {
-      console.log(
-        "Sender request til:",
-        `${process.env.EXPO_PUBLIC_API_URL}/api/auth/forgot-password?email=${email}`,
-      );
-
       const response = await fetch(
         `${process.env.EXPO_PUBLIC_API_URL}/api/auth/forgot-password?email=${email}`,
         {

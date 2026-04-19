@@ -9,7 +9,6 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage"; // To save the Web token
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { verifyPassword } from "@/utils/passwordUtils";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -19,8 +18,6 @@ export default function LoginScreen() {
   const [error, setError] = useState("");
 
   const handleLogin = async () => {
-    if (!verifyPassword(password, setError)) return;
-
     try {
       const response = await fetch(
         `${process.env.EXPO_PUBLIC_API_URL}/api/auth/login`,
@@ -38,6 +35,7 @@ export default function LoginScreen() {
 
       const data = await response.json();
       await AsyncStorage.setItem("token", data.token);
+      console.log("Token gemt:", data.token);
       router.replace("/(tabs)");
     } catch (error) {
       setError("Noget gik galt – prøv igen");

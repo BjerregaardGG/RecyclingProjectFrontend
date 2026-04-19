@@ -3,7 +3,7 @@ import { Ionicons } from "@expo/vector-icons";
 
 export default function TabLayout() {
   return (
-    <Tabs
+    <Tabs // for all tabs
       screenOptions={{
         tabBarActiveTintColor: "#3a7d3a",
         tabBarInactiveTintColor: "#aaa",
@@ -20,6 +20,24 @@ export default function TabLayout() {
           title: "Hjem",
           tabBarIcon: ({ color }) => (
             <Ionicons name="home-outline" size={24} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="give"
+        options={{
+          title: "Giv væk",
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="refresh-circle-outline" size={32} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: "Profile",
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="person-outline" size={24} color={color} />
           ),
         }}
       />
