@@ -12,11 +12,12 @@ import {
   verifyPassword,
   verifyfirstAndSecondPassword,
   verifyEmail,
-} from "@/utils/passwordUtils";
+} from "@/utils/authUtils";
 
 export default function registerScreen() {
   const router = useRouter();
   const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [secondPassword, setSecondPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -35,7 +36,7 @@ export default function registerScreen() {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
+          body: JSON.stringify({ email, name, password }),
         },
       );
 
@@ -76,6 +77,15 @@ export default function registerScreen() {
         onChangeText={setEmail}
         keyboardType="email-address"
         autoCapitalize="none"
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="Navn"
+        placeholderTextColor="#aaa"
+        value={name}
+        onChangeText={setName}
+        autoCapitalize="words"
       />
 
       <View style={styles.passwordWrapper}>

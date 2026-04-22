@@ -10,7 +10,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import {
   verifyPassword,
   verifyfirstAndSecondPassword,
-} from "@/utils/passwordUtils";
+} from "@/utils/authUtils";
 
 export default function ResetPasswordScreen() {
   const router = useRouter();
@@ -33,8 +33,6 @@ export default function ResetPasswordScreen() {
 
       if (!response.ok) {
         const text = await response.text();
-        console.log("Fejl response:", text); // ← hvad siger backend præcist?
-        console.log("Token sendt:", token);
         setError("Linket er udløbet – prøv igen");
         return;
       }

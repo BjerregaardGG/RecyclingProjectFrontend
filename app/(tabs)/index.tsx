@@ -12,45 +12,65 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { Item } from "@/interfaces/item";
 import { Category } from "@/interfaces/category";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getFetch } from "@/utils/fetchUtils";
+import { useRouter } from "expo-router";
 
 const { width } = Dimensions.get("window");
 const cardWidth = (width - 48) / 2;
 
 export default function HomeScreen() {
   const [selectedCategory, setSelectedCategory] = useState("Alle");
-  const [search, setSearch] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [range, setRange] = useState(5);
-  const [name, setName] = useState("Oliver");
+  const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [items, setItems] = useState<Item[]>([]);
+  const [filteredItems, setFilteredItems] = useState<Item[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     fetchItems();
     fetchCategories();
+    fetchUserName();
   }, []);
+
+  useEffect(() => {
+    if (selectedCategory === "Alle") {
+      fetchItems();
+    } else {
+      fetchItemsByCategory();
+    }
+  }, [selectedCategory]);
+
+  function handleSearchQuery(query: any) {
+    setSearchQuery(query);
+    if (!query) {
+      setFilteredItems(items);
+      return;
+    }
+
+    const filteredItems = items.filter(
+      (item) =>
+        item.name.toLowerCase().includes(query.toLowerCase()) ||
+        item.description.toLowerCase().includes(query.toLowerCase),
+    );
+    setFilteredItems(filteredItems);
+  }
+
+  const fetchUserName = async () => {
+    const response = await getFetch("/api/users/me");
+    const data = await response.json();
+    setName(data.name);
+  };
 
   const fetchItems = async () => {
     try {
-      const token = await AsyncStorage.getItem("token");
-      console.log("Token hentet:", token);
-      const response = await fetch(
-        `${process.env.EXPO_PUBLIC_API_URL}/api/items`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-            "ngrok-skip-browser-warning": "true",
-          },
-        },
-      );
+      const response = await getFetch("/api/items");
       const data = await response.json();
       setItems(data);
     } catch (error) {
-      console.log("Catch fejl:", error);
       setError("Noget gik galt – prøv igen");
     } finally {
       setLoading(false);
@@ -59,23 +79,25 @@ export default function HomeScreen() {
 
   const fetchCategories = async () => {
     try {
-      const token = await AsyncStorage.getItem("token");
-      const response = await fetch(
-        `${process.env.EXPO_PUBLIC_API_URL}/api/categories`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-            "ngrok-skip-browser-warning": "true",
-          },
-        },
-      );
+      const response = await getFetch("/api/categories");
       const data = await response.json();
       setCategories(data);
     } catch (error) {
-      console.log("Catch fejl:", error);
       setError("Noget gik galt – prøv igen");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchItemsByCategory = async () => {
+    try {
+      const response = await getFetch(
+        `/api/items/category?category=${selectedCategory}`,
+      );
+      const data = await response.json();
+      setItems(data);
+    } catch (error) {
+      setError("Noget gik galt - prøv igen");
     } finally {
       setLoading(false);
     }
@@ -101,8 +123,8 @@ export default function HomeScreen() {
           style={styles.searchInput}
           placeholder="Søg..."
           placeholderTextColor="#aaa"
-          value={search}
-          onChangeText={setSearch}
+          value={searchQuery}
+          onChangeText={handleSearchQuery}
         />
       </View>
 
@@ -119,6 +141,23 @@ export default function HomeScreen() {
           showsHorizontalScrollIndicator={false}
           style={styles.categories}
         >
+          <TouchableOpacity
+            style={[
+              styles.pill,
+              selectedCategory === "Alle" && styles.pillActive,
+            ]}
+            onPress={() => setSelectedCategory("Alle")}
+          >
+            <Text
+              style={[
+                styles.pillText,
+                selectedCategory === "Alle" && styles.pillTextActive,
+              ]}
+            >
+              Alle
+            </Text>
+          </TouchableOpacity>
+
           {categories.map((category) => (
             <TouchableOpacity
               key={category.id}
@@ -155,11 +194,28 @@ export default function HomeScreen() {
         {/* Items */}
         <Text style={styles.sectionLabel}>Wastes i dit nærområde</Text>
         <View style={styles.grid}>
-          {items.map((item) => (
-            <TouchableOpacity key={item.id} style={styles.card}>
-              <View style={[styles.cardImage]}></View>
+          {(searchQuery ? filteredItems : items).map((item) => (
+            <TouchableOpacity
+              key={item.id}
+              style={styles.card}
+              onPress={() =>
+                router.push({
+                  pathname: "/(tabs)/item/[id]",
+                  params: { id: item.id },
+                })
+              }
+            >
+              <Image
+                style={styles.cardImage}
+                source={{
+                  uri: item.image,
+                }}
+              />
               <View style={styles.cardBody}>
                 <Text style={styles.cardName}>{item.name}</Text>
+                <Text style={styles.cardDescription}>
+                  {item.secondDescription}
+                </Text>
                 <View style={styles.cardMeta}>
                   <View style={styles.dot} />
                   <Text style={styles.cardDistance}>2km</Text>
@@ -309,7 +365,7 @@ const styles = StyleSheet.create({
   },
   cardImage: {
     width: "100%",
-    height: 100,
+    height: 170,
   },
   cardBody: {
     padding: 8,
@@ -319,6 +375,12 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     color: "#2c2c2c",
     marginBottom: 4,
+  },
+  cardDescription: {
+    fontSize: 9,
+    fontWeight: "200",
+    color: "#2c2c2c",
+    marginBottom: 2,
   },
   cardMeta: {
     flexDirection: "row",

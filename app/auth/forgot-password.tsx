@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from "react-native";
-import { verifyEmail } from "@/utils/passwordUtils";
+import { verifyEmail } from "@/utils/authUtils";
 import { useRouter } from "expo-router";
 
 export default function ForgotPasswordScreen() {
