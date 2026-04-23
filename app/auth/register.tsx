@@ -13,6 +13,7 @@ import {
   verifyfirstAndSecondPassword,
   verifyEmail,
 } from "@/utils/authUtils";
+import { searchPostalCodes, PostalCode } from "@/utils/locationUtils";
 
 export default function registerScreen() {
   const router = useRouter();
@@ -23,6 +24,18 @@ export default function registerScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [showSecondPassword, setShowSecondPassword] = useState(false);
   const [error, setError] = useState("");
+  const [cityQuery, setCityQuery] = useState("");
+  const [postalCodes, setPostalCodes] = useState<PostalCode[]>([]);
+  const [selectedCity, setSelectedCity] = useState<String | null>(null);
+  const [selectedPostalCode, setSelectedPostalcode] = useState<String | null>(
+    null,
+  );
+
+  const handleLocationSearch = async (query: string) => {
+    setCityQuery(query);
+    const postalCodes = await searchPostalCodes(query);
+    setPostalCodes(postalCodes);
+  };
 
   const handleRegisterAccount = async () => {
     if (!verifyfirstAndSecondPassword(password, secondPassword, setError))
@@ -36,7 +49,13 @@ export default function registerScreen() {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, name, password }),
+          body: JSON.stringify({
+            email,
+            name,
+            password,
+            city: selectedCity,
+            postalCode: selectedPostalCode,
+          }),
         },
       );
 
@@ -87,6 +106,37 @@ export default function registerScreen() {
         onChangeText={setName}
         autoCapitalize="words"
       />
+
+      <TextInput
+        style={styles.input}
+        placeholder="Søg efter by eller postnummer"
+        placeholderTextColor="#aaa"
+        value={cityQuery}
+        onChangeText={handleLocationSearch}
+      />
+
+      {postalCodes.length > 0 && (
+        <View style={styles.dropdown}>
+          {postalCodes.map((postal, index) => (
+            <TouchableOpacity
+              key={`${postal.postnummer.nr}-${index}`}
+              style={styles.dropdownItem}
+              onPress={() => {
+                setSelectedCity(postal.postnummer.navn);
+                setSelectedPostalcode(postal.postnummer.nr);
+                setCityQuery(
+                  `${postal.postnummer.nr} ${postal.postnummer.navn}`,
+                );
+                setPostalCodes([]);
+              }}
+            >
+              <Text style={styles.dropdownText}>
+                {postal.postnummer.nr} {postal.postnummer.navn}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
 
       <View style={styles.passwordWrapper}>
         <TextInput
@@ -227,5 +277,23 @@ const styles = StyleSheet.create({
     padding: 8,
     justifyContent: "center",
     alignItems: "center",
+  },
+  dropdown: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    borderWidth: 0.5,
+    borderColor: "#e0e0e0",
+    marginTop: -12,
+    marginBottom: 12,
+    overflow: "hidden",
+  },
+  dropdownItem: {
+    padding: 12,
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#e0e0e0",
+  },
+  dropdownText: {
+    fontSize: 13,
+    color: "#2c2c2c",
   },
 });

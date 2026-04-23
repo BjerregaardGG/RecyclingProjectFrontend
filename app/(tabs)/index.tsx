@@ -14,6 +14,8 @@ import { Item } from "@/interfaces/item";
 import { Category } from "@/interfaces/category";
 import { getFetch } from "@/utils/fetchUtils";
 import { useRouter } from "expo-router";
+import * as Location from "expo-location";
+import { calculateDistance } from "@/utils/locationUtils";
 
 const { width } = Dimensions.get("window");
 const cardWidth = (width - 48) / 2;
@@ -23,18 +25,31 @@ export default function HomeScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [range, setRange] = useState(5);
   const [name, setName] = useState("");
+  const [initial, setInitial] = useState("");
   const [error, setError] = useState("");
   const [items, setItems] = useState<Item[]>([]);
   const [filteredItems, setFilteredItems] = useState<Item[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const [userLocation, setUserLocation] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
+  const [locationAccess, setLocationAccess] = useState(false);
 
   useEffect(() => {
+    getUserLocation();
     fetchItems();
     fetchCategories();
     fetchUserName();
   }, []);
+
+  useEffect(() => {
+    if (userLocation) {
+      setItems((prev) => [...prev]);
+    }
+  }, [userLocation]);
 
   useEffect(() => {
     if (selectedCategory === "Alle") {
@@ -59,10 +74,34 @@ export default function HomeScreen() {
     setFilteredItems(filteredItems);
   }
 
+  const getUserLocation = async () => {
+    const hasAccess = await getUserAccess();
+    if (!hasAccess) {
+      return;
+    }
+
+    const location = await Location.getCurrentPositionAsync({});
+    setUserLocation({
+      latitude: location.coords.latitude,
+      longitude: location.coords.longitude,
+    });
+  };
+
+  const getUserAccess = async (): Promise<boolean> => {
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== "granted") {
+      setLocationAccess(false);
+      return false;
+    }
+    setLocationAccess(true);
+    return true;
+  };
+
   const fetchUserName = async () => {
     const response = await getFetch("/api/users/me");
     const data = await response.json();
     setName(data.name);
+    setInitial(data.name.substring(0, 1).toUpperCase());
   };
 
   const fetchItems = async () => {
@@ -112,7 +151,7 @@ export default function HomeScreen() {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>WASTEY</Text>
         <View style={styles.avatar}>
-          <Text style={styles.avatarText}>MK</Text>
+          <Text style={styles.avatarText}>{initial}</Text>
         </View>
       </View>
 
@@ -200,8 +239,8 @@ export default function HomeScreen() {
               style={styles.card}
               onPress={() =>
                 router.push({
-                  pathname: "/(tabs)/item/[id]",
-                  params: { id: item.id },
+                  pathname: "/item/[id]",
+                  params: { id: item.id, userId: item.userId },
                 })
               }
             >
@@ -217,8 +256,17 @@ export default function HomeScreen() {
                   {item.secondDescription}
                 </Text>
                 <View style={styles.cardMeta}>
-                  <View style={styles.dot} />
-                  <Text style={styles.cardDistance}>2km</Text>
+                  <View style={locationAccess ? styles.dot : styles.dotGray} />
+                  <Text style={styles.cardDistance}>
+                    {userLocation && item.latitude && item.longitude
+                      ? calculateDistance(
+                          userLocation.latitude,
+                          userLocation.longitude,
+                          item.latitude,
+                          item.longitude,
+                        )
+                      : ""}
+                  </Text>
                 </View>
               </View>
             </TouchableOpacity>
@@ -392,6 +440,12 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     backgroundColor: "#3a7d3a",
+  },
+  dotGray: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#8a8a8a",
   },
   cardDistance: {
     fontSize: 11,

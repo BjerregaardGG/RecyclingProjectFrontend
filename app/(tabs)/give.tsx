@@ -16,6 +16,7 @@ import { postFetch } from "@/utils/fetchUtils";
 import { Category } from "@/interfaces/category";
 import { useEffect } from "react";
 import { getFetch } from "@/utils/fetchUtils";
+import { searchAdresses, Address } from "@/utils/locationUtils";
 
 export default function GiveScreen() {
   const [name, setName] = useState("");
@@ -29,10 +30,19 @@ export default function GiveScreen() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const [addreessQuery, setAddressQuery] = useState("");
+  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
 
   useEffect(() => {
     fetchCategories();
   }, []);
+
+  const handleLocationSearch = async (query: string) => {
+    setAddressQuery(query);
+    const addresses = await searchAdresses(query);
+    setAddresses(addresses);
+  };
 
   const fetchCategories = async () => {
     try {
@@ -64,14 +74,22 @@ export default function GiveScreen() {
     }
 
     setLoading(true);
+
+    const newItem = {
+      name: name,
+      description: description,
+      secondTitle: secondTitle,
+      categoryId: selectedCategory.id,
+      image: image,
+      address:
+        selectedAddress?.adresse.vejnavn + " " + selectedAddress?.adresse.husnr,
+      city: selectedAddress?.adresse.postnrnavn,
+      latitude: selectedAddress?.adresse.y,
+      longitude: selectedAddress?.adresse.x,
+    };
+
     try {
-      const response = await postFetch("/api/items", {
-        name,
-        description,
-        secondTitle,
-        categoryId: selectedCategory.id,
-        image,
-      });
+      const response = await postFetch("/api/items", newItem);
 
       if (!response.ok) {
         setError("Noget gik galt – prøv igen");
@@ -83,6 +101,8 @@ export default function GiveScreen() {
       setDescription("");
       setImage(null);
       setSelectedCategory(null);
+      setSecondTitle("");
+      setSelectedAddress(null);
       setError("");
     } catch (error) {
       setError("Noget gik galt – prøv igen");
@@ -151,6 +171,33 @@ export default function GiveScreen() {
             multiline
             numberOfLines={4}
           />
+
+          {/* Address */}
+          <Text style={styles.label}>Afhentningssted</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Afhentningssted"
+            placeholderTextColor="#aaa"
+            value={addreessQuery}
+            onChangeText={handleLocationSearch}
+          />
+
+          {addresses.length > 0 && (
+            <View style={styles.dropdown}>
+              {addresses.map((address, index) => (
+                <TouchableOpacity
+                  key={`${address.adresse.id}-${index}`}
+                  style={styles.dropdownItem}
+                  onPress={() => {
+                    setSelectedAddress(address);
+                    (setAddressQuery(address.tekst), setAddresses([]));
+                  }}
+                >
+                  <Text style={styles.dropdownText}>{address.tekst}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
 
           {/* Category */}
           <Text style={styles.label}>Kategori</Text>
@@ -310,5 +357,23 @@ const styles = StyleSheet.create({
     fontSize: 13,
     textAlign: "center",
     marginBottom: 12,
+  },
+  dropdown: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    borderWidth: 0.5,
+    borderColor: "#e0e0e0",
+    marginTop: -12,
+    marginBottom: 12,
+    overflow: "hidden",
+  },
+  dropdownItem: {
+    padding: 12,
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#e0e0e0",
+  },
+  dropdownText: {
+    fontSize: 13,
+    color: "#2c2c2c",
   },
 });

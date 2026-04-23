@@ -8,7 +8,9 @@ export async function pickAndUploadImage(): Promise<string | null> {
   if (status !== "granted") {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
-      alert("Du skal give adgang til dit fotobiblotek under indstillinger");
+      alert(
+        "Du skal give Wastey adgang til dit fotobiblotek for at kunne uploade billeder",
+      );
       return null;
     }
   }
