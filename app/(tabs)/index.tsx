@@ -1,4 +1,6 @@
 import { use, useEffect, useState } from "react";
+import { useFocusEffect } from "expo-router";
+import { useCallback } from "react";
 import {
   View,
   Text,
@@ -38,26 +40,20 @@ export default function HomeScreen() {
   } | null>(null);
   const [locationAccess, setLocationAccess] = useState(false);
 
-  useEffect(() => {
-    getUserLocation();
-    fetchItems();
-    fetchCategories();
-    fetchUserName();
-  }, []);
-
-  useEffect(() => {
-    if (userLocation) {
-      setItems((prev) => [...prev]);
-    }
-  }, [userLocation]);
-
-  useEffect(() => {
-    if (selectedCategory === "Alle") {
+  useFocusEffect(
+    useCallback(() => {
+      getUserLocation();
       fetchItems();
-    } else {
-      fetchItemsByCategory();
-    }
-  }, [selectedCategory]);
+      fetchCategories();
+      fetchUserName();
+
+      if (selectedCategory === "Alle") {
+        fetchItems();
+      } else {
+        fetchItemsByCategory();
+      }
+    }, [selectedCategory]),
+  );
 
   function handleSearchQuery(query: any) {
     setSearchQuery(query);
@@ -149,7 +145,7 @@ export default function HomeScreen() {
         <TouchableOpacity>
           <Ionicons name="menu-outline" size={26} color="#fff" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>WASTEY</Text>
+        <Text style={styles.headerTitle}>Snatch</Text>
         <View style={styles.avatar}>
           <Text style={styles.avatarText}>{initial}</Text>
         </View>
@@ -231,7 +227,10 @@ export default function HomeScreen() {
         </View>
 
         {/* Items */}
-        <Text style={styles.sectionLabel}>Wastes i dit nærområde</Text>
+        <Text style={styles.sectionLabel}>
+          Snatches i dit nærområde (
+          {searchQuery ? filteredItems.length : items.length})
+        </Text>
         <View style={styles.grid}>
           {(searchQuery ? filteredItems : items).map((item) => (
             <TouchableOpacity
@@ -240,7 +239,12 @@ export default function HomeScreen() {
               onPress={() =>
                 router.push({
                   pathname: "/item/[id]",
-                  params: { id: item.id, userId: item.userId },
+                  params: {
+                    id: item.id,
+                    userId: item.userId,
+                    latitude: userLocation?.latitude,
+                    longitude: userLocation?.longitude,
+                  },
                 })
               }
             >

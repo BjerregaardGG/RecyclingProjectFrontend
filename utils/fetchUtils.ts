@@ -26,3 +26,16 @@ export async function postFetch(endpoint: string, body: {}): Promise<Response> {
     body: JSON.stringify(body),
   });
 }
+
+export async function patchFetch(endpoint: string): Promise<Response> {
+  const token = await AsyncStorage.getItem("token");
+
+  return await fetch(`${process.env.EXPO_PUBLIC_API_URL}${endpoint}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+      "ngrok-skip-browser-warning": "true",
+    },
+  });
+}
