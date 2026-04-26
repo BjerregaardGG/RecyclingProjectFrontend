@@ -13,6 +13,7 @@ import { getFetch, postFetch } from "@/utils/fetchUtils";
 import { Item } from "@/interfaces/item";
 import { User } from "@/interfaces/user";
 import { calculateDistance } from "@/utils/locationUtils";
+import { PickupRequest } from "@/interfaces/pickupRequest";
 
 export default function ItemScreen() {
   const { id, userId, latitude, longitude } = useLocalSearchParams();
@@ -22,6 +23,9 @@ export default function ItemScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [pickupRequest, setPickupRequest] = useState<PickupRequest | null>(
+    null,
+  );
 
   useEffect(() => {
     fetchItem();
@@ -61,14 +65,18 @@ export default function ItemScreen() {
 
   const handlePickup = async () => {
     try {
-      const response = await postFetch(`/api/items/${id}/pickup`, {});
+      const response = await postFetch(`/api/pickups/items/${id}`, {});
       if (!response.ok) {
         setError("Noget gik galt – prøv igen");
         return;
       }
+      const pickupRequest = await response.json();
+      setPickupRequest(pickupRequest);
       setSuccess("Du er markeret som interesseret i at afhente denne ting!");
     } catch (error) {
       setError("Noget gik galt – prøv igen");
+    } finally {
+      setLoading(false);
     }
   };
 

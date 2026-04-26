@@ -33,9 +33,18 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="inbox"
+        options={{
+          title: "Indbakke",
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="mail-outline" size={30} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="profile"
         options={{
-          title: "Profile",
+          title: "Profil",
           tabBarIcon: ({ color }) => (
             <Ionicons name="person-outline" size={26} color={color} />
           ),
