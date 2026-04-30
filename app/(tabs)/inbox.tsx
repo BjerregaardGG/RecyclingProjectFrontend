@@ -1,4 +1,3 @@
-// app/(tabs)/inbox.tsx
 import { useState, useCallback } from "react";
 import {
   View,
@@ -14,10 +13,10 @@ import { getFetch, patchFetch } from "@/utils/fetchUtils";
 import { useFocusEffect } from "expo-router";
 import { formatRelativeTime } from "@/utils/dateUtils";
 
-type Tab = "requests" | "messages";
+type Tab = "notifications" | "messages";
 
 export default function InboxScreen() {
-  const [activeTab, setActiveTab] = useState<Tab>("requests");
+  const [activeTab, setActiveTab] = useState<Tab>("notifications");
 
   return (
     <View style={styles.container}>
@@ -29,16 +28,19 @@ export default function InboxScreen() {
       {/* Tab switcher */}
       <View style={styles.tabBar}>
         <TouchableOpacity
-          style={[styles.tab, activeTab === "requests" && styles.tabActive]}
-          onPress={() => setActiveTab("requests")}
+          style={[
+            styles.tab,
+            activeTab === "notifications" && styles.tabActive,
+          ]}
+          onPress={() => setActiveTab("notifications")}
         >
           <Text
             style={[
               styles.tabText,
-              activeTab === "requests" && styles.tabTextActive,
+              activeTab === "notifications" && styles.tabTextActive,
             ]}
           >
-            Anmodninger
+            Notifikationer
           </Text>
         </TouchableOpacity>
 
@@ -59,16 +61,15 @@ export default function InboxScreen() {
 
       {/* Content */}
       <ScrollView style={styles.content}>
-        {activeTab === "requests" ? <RequestsList /> : <MessagesList />}
+        {activeTab === "notifications" ? <RequestsList /> : <Notifications />}
       </ScrollView>
     </View>
   );
 }
 
-/* ---------------- Anmodninger ---------------- */
+/* ---------------- Requests ---------------- */
 
 function RequestsList() {
-  // Placeholder data – erstatter med rigtig data senere
   const [requests, setRequests] = useState<PickupRequest[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -94,38 +95,6 @@ function RequestsList() {
     }
   };
 
-  const acceptRequest = async (requestId: number) => {
-    try {
-      const response = await patchFetch(`/api/pickups/${requestId}/accept`);
-
-      if (!response.ok) {
-        setError("Noget gik galt - prøv igen");
-      }
-      const acceptedRequest = await response.json();
-      setRequests((prev) => prev.filter((req) => req.id !== requestId));
-    } catch {
-      setError("Noget gik galt - prøv igen");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const declineRequest = async (requestId: number) => {
-    try {
-      const response = await patchFetch(`/api/pickups/${requestId}/decline`);
-
-      if (!response.ok) {
-        setError("Noget gik galt - prøv igen");
-      }
-      const declineRequest = await response.json();
-      setRequests((prev) => prev.filter((req) => req.id !== requestId));
-    } catch {
-      setError("Noget gik galt - prøv igen");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   if (loading) return <Text>Indlæser...</Text>;
 
   if (requests.length === 0) {
@@ -136,44 +105,11 @@ function RequestsList() {
       </View>
     );
   }
-
-  return (
-    <View style={styles.list}>
-      {requests.map((req) => (
-        <View key={req.id} style={styles.requestCard}>
-          <Image source={{ uri: req.itemImage }} style={styles.requestImage} />
-          <View style={styles.requestInfo}>
-            <Text style={styles.requestName}>{req.itemName}</Text>
-            <Text style={styles.requestSubtext}>
-              {req.requesterName} vil afhente
-            </Text>
-            <Text style={styles.requestTime}>
-              {formatRelativeTime(req.createdAt)}
-            </Text>
-          </View>
-          <View style={styles.requestActions}>
-            <TouchableOpacity
-              style={styles.acceptButton}
-              onPress={() => acceptRequest(req.id)}
-            >
-              <Ionicons name="checkmark" size={18} color="#fff" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.rejectButton}
-              onPress={() => declineRequest(req.id)}
-            >
-              <Ionicons name="close" size={18} color="#fff" />
-            </TouchableOpacity>
-          </View>
-        </View>
-      ))}
-    </View>
-  );
 }
 
 /* ---------------- Beskeder ---------------- */
 
-function MessagesList() {
+function Notifications() {
   const messages = [
     {
       id: 1,
