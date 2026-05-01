@@ -13,6 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { getFetch, patchFetch } from "@/utils/fetchUtils";
 import { PickupRequest } from "@/interfaces/pickupRequest";
 import { User } from "@/interfaces/user";
+import { getTimeRemaining, useCountdown, isExpired } from "@/utils/dateUtils";
 
 export default function PickupDetailScreen() {
   const { id, userId } = useLocalSearchParams();
@@ -21,6 +22,9 @@ export default function PickupDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [user, setUser] = useState<User | null>(null);
+
+  // forces re-render every minute so that time remaining updates
+  useCountdown();
 
   useEffect(() => {
     fetchRequest();
@@ -132,6 +136,7 @@ export default function PickupDetailScreen() {
   const isAccepted = request.status === "ACCEPTED";
   const isOwner =
     user != null && request != null && user.id !== request.ownerId;
+  const expired = isExpired(request?.expiresAt);
 
   return (
     <ScrollView style={styles.container}>
@@ -146,7 +151,6 @@ export default function PickupDetailScreen() {
       {/* Hoved sektion */}
       <View style={styles.section}>
         {error ? <Text style={styles.error}>{error}</Text> : null}
-
         <Text style={styles.name}>{request.itemName}</Text>
 
         {/* Status badge */}
@@ -166,15 +170,24 @@ export default function PickupDetailScreen() {
             {request.status === "EXPIRED" && "Udløbet"}
           </Text>
         </View>
+        {isAccepted && request.expiresAt && (
+          <View style={[styles.countdownSection]}>
+            <Ionicons
+              name="time-outline"
+              size={16}
+              color={expired ? "#e24b4a" : "#3a7d3a"}
+            />
+            <Text
+              style={[
+                styles.countdownText,
+                expired && styles.countdownTextExpired,
+              ]}
+            >
+              {getTimeRemaining(request.expiresAt)}
+            </Text>
+          </View>
+        )}
       </View>
-
-      {/* Countdown sektion (kun når accepteret) */}
-      {isAccepted && request.expiresAt && (
-        <View style={[styles.section, styles.countdownSection]}>
-          <Ionicons name="time-outline" size={20} color="#3a7d3a" />
-          <Text style={styles.countdownText}></Text>
-        </View>
-      )}
 
       {/* User section */}
       <View style={styles.section}>
@@ -300,12 +313,13 @@ const styles = StyleSheet.create({
   statusRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    gap: 8,
+    marginLeft: 2,
   },
   statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
     backgroundColor: "#888",
   },
   statusDotPending: {
@@ -322,14 +336,16 @@ const styles = StyleSheet.create({
   countdownSection: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    backgroundColor: "#f0f7f0",
-    borderColor: "#3a7d3a",
+    gap: 6,
+    marginTop: 8,
   },
   countdownText: {
-    fontSize: 16,
-    color: "#3a7d3a",
+    fontSize: 15,
+    color: "#555",
+    fontWeight: "600",
+  },
+  countdownTextExpired: {
+    color: "#d65d5d",
     fontWeight: "600",
   },
   userRow: {

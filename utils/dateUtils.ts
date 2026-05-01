@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+
 export const formatRelativeTime = (isoString: string): string => {
   const now = new Date();
   const then = new Date(isoString);
@@ -17,4 +19,37 @@ export const formatRelativeTime = (isoString: string): string => {
     day: "numeric",
     month: "short",
   });
+};
+
+export const getTimeRemaining = (expiresAt: string): string => {
+  const now = new Date().getTime();
+  const expires = new Date(expiresAt).getTime();
+  const timeLeft = expires - now;
+
+  if (timeLeft <= 0) {
+    return "Udløbet";
+  }
+
+  const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+  const minutes = Math.floor((timeLeft / (1000 * 60)) % 60);
+  const seconds = Math.floor((timeLeft / 1000) % 60);
+
+  return `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+};
+
+export const useCountdown = () => {
+  const [, setTick] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTick((t) => t + 1);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+};
+
+export const isExpired = (expiresAt: string): boolean => {
+  if (!expiresAt) return false;
+  return new Date(expiresAt).getTime() <= Date.now();
 };

@@ -15,8 +15,10 @@ import { getFetch, patchFetch } from "@/utils/fetchUtils";
 import { useFocusEffect } from "expo-router";
 import { formatRelativeTime } from "@/utils/dateUtils";
 import { useRouter } from "expo-router";
+import { getTimeRemaining, useCountdown, isExpired } from "@/utils/dateUtils";
 
 type Tab = "received" | "sent";
+// forces re-render every minute so that time remaining updates
 
 export default function InboxScreen() {
   const [activeTab, setActiveTab] = useState<Tab>("received");
@@ -73,6 +75,8 @@ function ReceivedList() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+
+  useCountdown();
 
   useFocusEffect(
     useCallback(() => {
@@ -154,6 +158,7 @@ function ReceivedList() {
     <View style={styles.list}>
       {sortedRequests.map((req) => {
         const isAccepted = req.status === "ACCEPTED";
+        const expired = isExpired(req?.expiresAt);
 
         return (
           <TouchableOpacity
@@ -161,6 +166,7 @@ function ReceivedList() {
             style={[
               styles.requestCard,
               isAccepted && styles.requestCardAccepted,
+              isAccepted && expired && styles.expired,
             ]}
             onPress={() =>
               router.push({
@@ -181,10 +187,16 @@ function ReceivedList() {
               <Text style={styles.requestName}>{req.itemName}</Text>
               <Text style={styles.requestSubtext}>
                 {req.requesterName}{" "}
-                {isAccepted ? "henter snart" : "vil afhente"}
+                {expired
+                  ? "har ikke afhentet"
+                  : isAccepted
+                    ? "afhenter snart"
+                    : "vil gerne afhente"}
               </Text>
               <Text style={styles.requestTime}>
-                {formatRelativeTime(req.createdAt)}
+                {isAccepted
+                  ? getTimeRemaining(req.expiresAt)
+                  : formatRelativeTime(req.createdAt)}
               </Text>
             </View>
 
@@ -205,9 +217,14 @@ function ReceivedList() {
               </View>
             )}
 
-            {isAccepted && (
+            {isAccepted && !expired && (
               <View style={styles.acceptedBadge}>
                 <Ionicons name="checkmark-circle" size={20} color="#3a7d3a" />
+              </View>
+            )}
+            {isAccepted && expired && (
+              <View style={styles.acceptedBadge}>
+                <Ionicons name="hourglass-outline" size={20} color="#b14343" />
               </View>
             )}
           </TouchableOpacity>
@@ -223,6 +240,8 @@ function SentList() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+
+  useCountdown();
 
   useFocusEffect(
     useCallback(() => {
@@ -267,6 +286,7 @@ function SentList() {
     <View style={styles.list}>
       {sortedRequests.map((req) => {
         const isAccepted = req.status === "ACCEPTED";
+        const expired = isExpired(req?.expiresAt);
 
         return (
           <TouchableOpacity
@@ -274,6 +294,7 @@ function SentList() {
             style={[
               styles.requestCard,
               isAccepted && styles.requestCardAccepted,
+              isAccepted && expired && styles.expired,
             ]}
             onPress={() =>
               router.push({
@@ -293,19 +314,29 @@ function SentList() {
             <View style={styles.requestInfo}>
               <Text style={styles.requestName}>{req.itemName}</Text>
               <Text style={styles.requestSubtext}>
-                {req.ownerName}{" "}
-                {isAccepted ? "har accepteret" : "har ikke accepteret endnu"}
+                {expired
+                  ? "Du har ikke afhentet"
+                  : isAccepted
+                    ? "Accepteret"
+                    : "Ikke accepteret endnu"}
               </Text>
               <Text style={styles.requestTime}>
-                {formatRelativeTime(req.createdAt)}
+                {isAccepted
+                  ? getTimeRemaining(req.expiresAt)
+                  : formatRelativeTime(req.createdAt)}
               </Text>
             </View>
 
             {!isAccepted && <View style={styles.requestActions}></View>}
 
-            {isAccepted && (
+            {isAccepted && !expired && (
               <View style={styles.acceptedBadge}>
                 <Ionicons name="checkmark-circle" size={20} color="#3a7d3a" />
+              </View>
+            )}
+            {isAccepted && expired && (
+              <View style={styles.acceptedBadge}>
+                <Ionicons name="hourglass-outline" size={20} color="#b14343" />
               </View>
             )}
           </TouchableOpacity>
@@ -363,6 +394,11 @@ const styles = StyleSheet.create({
   requestCardAccepted: {
     backgroundColor: "#f0f7f0",
     borderColor: "#3a7d3a",
+    borderWidth: 1,
+  },
+  expired: {
+    backgroundColor: "#f0f7f0",
+    borderColor: "#b14343",
     borderWidth: 1,
   },
   acceptedBadge: {

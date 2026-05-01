@@ -176,7 +176,7 @@ export default function GiveScreen() {
           <Text style={styles.label}>Afhentningssted</Text>
           <TextInput
             style={styles.input}
-            placeholder="Afhentningssted"
+            placeholder="Begynd at skrive adressen..."
             placeholderTextColor="#aaa"
             value={addreessQuery}
             onChangeText={handleLocationSearch}

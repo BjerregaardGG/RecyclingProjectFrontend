@@ -14,6 +14,7 @@ import { Item } from "@/interfaces/item";
 import { User } from "@/interfaces/user";
 import { calculateDistance } from "@/utils/locationUtils";
 import { PickupRequest } from "@/interfaces/pickupRequest";
+import InfoTooltip from "@/components/InfoToolTip";
 
 export default function ItemScreen() {
   const { id, userId, latitude, longitude } = useLocalSearchParams();
@@ -131,7 +132,11 @@ export default function ItemScreen() {
 
       {/* Afhentning & Afstand sektion */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Afhentningssted</Text>
+        <InfoTooltip
+          sectionTitle="Afhentningssted"
+          title="Afhentningssted"
+          text="Når brugeren accepterer din anmodning, så vil du automatisk få adgang til at se adressen."
+        />
         <View style={styles.locationRow}>
           <Ionicons name="location-outline" size={16} color="#3a7d3a" />
           <Text style={styles.locationText}>{userData.city}</Text>

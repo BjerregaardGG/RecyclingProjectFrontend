@@ -9,7 +9,7 @@ export interface PickupRequest {
   ownerName: string;
   status: PickupStatus;
   createdAt: string;
-  expiresAt: string | null;
+  expiresAt: string;
   pickupAddress: string | null;
 }
 
