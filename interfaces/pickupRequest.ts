@@ -11,6 +11,8 @@ export interface PickupRequest {
   createdAt: string;
   expiresAt: string;
   pickupAddress: string | null;
+  ownerConfirmedAt: string;
+  requesterConfirmedAt: string;
 }
 
 export type PickupStatus =

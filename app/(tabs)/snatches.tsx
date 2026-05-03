@@ -158,6 +158,8 @@ function ReceivedList() {
     <View style={styles.list}>
       {sortedRequests.map((req) => {
         const isAccepted = req.status === "ACCEPTED";
+        const isPending = req.status === "PENDING";
+        const isCompleted = req.status === "COMPLETED";
         const expired = isExpired(req?.expiresAt);
 
         return (
@@ -167,6 +169,7 @@ function ReceivedList() {
               styles.requestCard,
               isAccepted && styles.requestCardAccepted,
               isAccepted && expired && styles.expired,
+              isCompleted && styles.requestCardCompleted,
             ]}
             onPress={() =>
               router.push({
@@ -187,11 +190,13 @@ function ReceivedList() {
               <Text style={styles.requestName}>{req.itemName}</Text>
               <Text style={styles.requestSubtext}>
                 {req.requesterName}{" "}
-                {expired
-                  ? "har ikke afhentet"
-                  : isAccepted
-                    ? "afhenter snart"
-                    : "vil gerne afhente"}
+                {isCompleted
+                  ? "har afhentet"
+                  : expired
+                    ? "har ikke afhentet"
+                    : isAccepted
+                      ? "afhenter snart"
+                      : "vil gerne afhente"}
               </Text>
               <Text style={styles.requestTime}>
                 {isAccepted
@@ -200,7 +205,7 @@ function ReceivedList() {
               </Text>
             </View>
 
-            {!isAccepted && (
+            {isPending && (
               <View style={styles.requestActions}>
                 <TouchableOpacity
                   style={styles.acceptButton}
@@ -225,6 +230,11 @@ function ReceivedList() {
             {isAccepted && expired && (
               <View style={styles.acceptedBadge}>
                 <Ionicons name="hourglass-outline" size={20} color="#b14343" />
+              </View>
+            )}
+            {isCompleted && (
+              <View style={styles.acceptedBadge}>
+                <Ionicons name="checkmark-circle" size={20} color="#32719b" />
               </View>
             )}
           </TouchableOpacity>
@@ -286,6 +296,7 @@ function SentList() {
     <View style={styles.list}>
       {sortedRequests.map((req) => {
         const isAccepted = req.status === "ACCEPTED";
+        const isCompleted = req.status === "COMPLETED";
         const expired = isExpired(req?.expiresAt);
 
         return (
@@ -295,6 +306,7 @@ function SentList() {
               styles.requestCard,
               isAccepted && styles.requestCardAccepted,
               isAccepted && expired && styles.expired,
+              isCompleted && styles.requestCardCompleted,
             ]}
             onPress={() =>
               router.push({
@@ -314,11 +326,13 @@ function SentList() {
             <View style={styles.requestInfo}>
               <Text style={styles.requestName}>{req.itemName}</Text>
               <Text style={styles.requestSubtext}>
-                {expired
-                  ? "Du har ikke afhentet"
-                  : isAccepted
-                    ? "Accepteret"
-                    : "Ikke accepteret endnu"}
+                {isCompleted
+                  ? "Afhentet"
+                  : expired
+                    ? "Du har ikke afhentet"
+                    : isAccepted
+                      ? "Accepteret"
+                      : "Ikke accepteret endnu"}
               </Text>
               <Text style={styles.requestTime}>
                 {isAccepted
@@ -337,6 +351,11 @@ function SentList() {
             {isAccepted && expired && (
               <View style={styles.acceptedBadge}>
                 <Ionicons name="hourglass-outline" size={20} color="#b14343" />
+              </View>
+            )}
+            {isCompleted && (
+              <View style={styles.acceptedBadge}>
+                <Ionicons name="checkmark-circle" size={20} color="#32719b" />
               </View>
             )}
           </TouchableOpacity>
@@ -394,6 +413,11 @@ const styles = StyleSheet.create({
   requestCardAccepted: {
     backgroundColor: "#f0f7f0",
     borderColor: "#3a7d3a",
+    borderWidth: 1,
+  },
+  requestCardCompleted: {
+    backgroundColor: "#f0f7f0",
+    borderColor: "#32719b",
     borderWidth: 1,
   },
   expired: {

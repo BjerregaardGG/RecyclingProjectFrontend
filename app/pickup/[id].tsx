@@ -21,7 +21,7 @@ export default function PickupDetailScreen() {
   const [request, setRequest] = useState<PickupRequest | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [user, setUser] = useState<User | null>(null);
+  const [otherUser, setOtherUser] = useState<User | null>(null);
 
   // forces re-render every minute so that time remaining updates
   useCountdown();
@@ -56,7 +56,7 @@ export default function PickupDetailScreen() {
       }
 
       const userData = await response.json();
-      setUser(userData);
+      setOtherUser(userData);
     } catch (error) {
       setError("Noget gik galt - prøv igen");
     } finally {
@@ -98,11 +98,18 @@ export default function PickupDetailScreen() {
     );
   };
 
-  const handleComplete = async () => {
+  const handleConfirm = async () => {
     try {
-      const response = await patchFetch(`/api/pickups/${id}/complete`);
-      if (!response.ok) return;
-      router.back();
+      console.log(id);
+      const response = await patchFetch(`/api/pickups/${id}/confirm`);
+      if (!response.ok) {
+        setError("Noget gik galt - prøv igen");
+        router.back();
+      }
+
+      const data = await response.json();
+      console.log(data);
+      setRequest(data);
     } catch (error) {
       setError("Noget gik galt – prøv igen");
     }
@@ -124,7 +131,7 @@ export default function PickupDetailScreen() {
     );
   }
 
-  if (!user) {
+  if (!otherUser) {
     return (
       <View style={styles.centered}>
         <Text>Bruger ikke fundet</Text>
@@ -134,9 +141,16 @@ export default function PickupDetailScreen() {
 
   const isPending = request.status === "PENDING";
   const isAccepted = request.status === "ACCEPTED";
+  const isCompleted = request.status === "COMPLETED";
   const isOwner =
-    user != null && request != null && user.id !== request.ownerId;
+    otherUser != null && request != null && otherUser.id !== request.ownerId;
   const expired = isExpired(request?.expiresAt);
+  const myConfirmation = isOwner
+    ? request.ownerConfirmedAt
+    : request.requesterConfirmedAt;
+  const otherConfirmation = isOwner
+    ? request.requesterConfirmedAt
+    : request.ownerConfirmedAt;
 
   return (
     <ScrollView style={styles.container}>
@@ -160,6 +174,7 @@ export default function PickupDetailScreen() {
               styles.statusDot,
               isPending && styles.statusDotPending,
               isAccepted && styles.statusDotAccepted,
+              isCompleted && styles.statusDotCompleted,
             ]}
           />
           <Text style={styles.statusText}>
@@ -198,7 +213,7 @@ export default function PickupDetailScreen() {
               {request.requesterName?.substring(0, 1).toUpperCase()}
             </Text>
           </View>
-          <Text style={styles.userName}>{user?.name}</Text>
+          <Text style={styles.userName}>{otherUser?.name}</Text>
         </View>
       </View>
 
@@ -248,17 +263,30 @@ export default function PickupDetailScreen() {
               }}
             >
               <Ionicons name="chatbubble-outline" size={18} color="#fff" />
-              <Text style={styles.buttonText}>Skriv til {user?.name}</Text>
+              <Text style={styles.buttonText}>Skriv til {otherUser?.name}</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={[styles.button, styles.buttonSecondary]}
-              onPress={handleComplete}
-            >
-              <Text style={styles.buttonTextSecondary}>
-                Marker som afhentet
-              </Text>
-            </TouchableOpacity>
+            {isAccepted && !myConfirmation && (
+              <TouchableOpacity style={styles.button} onPress={handleConfirm}>
+                <Text style={styles.buttonText}>Marker som afhentet</Text>
+              </TouchableOpacity>
+            )}
+
+            {isAccepted && myConfirmation && !otherConfirmation && (
+              <View style={styles.waitingBox}>
+                <Ionicons name="time-outline" size={20} color="#888" />
+                <Text style={styles.waitingText}>
+                  Afventer bekræftelse fra {otherUser.name}...
+                </Text>
+              </View>
+            )}
+
+            {request.status === "COMPLETED" && (
+              <View style={styles.completedBox}>
+                <Ionicons name="checkmark-circle" size={20} color="#3a7d3a" />
+                <Text style={styles.completedText}>Afhentet ✓</Text>
+              </View>
+            )}
           </>
         )}
       </View>
@@ -327,6 +355,9 @@ const styles = StyleSheet.create({
   },
   statusDotAccepted: {
     backgroundColor: "#3a7d3a",
+  },
+  statusDotCompleted: {
+    backgroundColor: "#32719b",
   },
   statusText: {
     fontSize: 13,
@@ -438,5 +469,21 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#888",
     fontWeight: "500",
+  },
+  completedBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    backgroundColor: "#f0f7f0",
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "#3a7d3a",
+  },
+  completedText: {
+    fontSize: 14,
+    color: "#3a7d3a",
+    fontWeight: "600",
   },
 });
