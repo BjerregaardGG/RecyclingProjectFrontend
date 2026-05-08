@@ -1,4 +1,3 @@
-// components/InfoTooltip.tsx
 import { useState } from "react";
 import { Modal, View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";

@@ -259,7 +259,16 @@ export default function PickupDetailScreen() {
             <TouchableOpacity
               style={styles.button}
               onPress={() => {
-                /* TODO: åbn chat når den er klar */
+                router.push({
+                  pathname: "/chat/[pickupId]",
+                  params: {
+                    pickupId: request.id.toString(),
+                    otherName: isOwner
+                      ? request.requesterName
+                      : request.ownerName,
+                    otherImage: otherUser.image,
+                  },
+                });
               }}
             >
               <Ionicons name="chatbubble-outline" size={18} color="#fff" />

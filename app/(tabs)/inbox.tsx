@@ -11,6 +11,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { PickupRequest } from "@/interfaces/pickupRequest";
 import { getFetch, patchFetch } from "@/utils/fetchUtils";
 import { useFocusEffect } from "expo-router";
+import { useRouter } from "expo-router";
+import { Message } from "@/interfaces/message";
+import { Conversation } from "@/interfaces/conversation";
 import { formatRelativeTime } from "@/utils/dateUtils";
 
 type Tab = "notifications" | "messages";
@@ -61,13 +64,11 @@ export default function InboxScreen() {
 
       {/* Content */}
       <ScrollView style={styles.content}>
-        {activeTab === "notifications" ? <RequestsList /> : <Notifications />}
+        {activeTab === "notifications" ? <RequestsList /> : <Messages />}
       </ScrollView>
     </View>
   );
 }
-
-/* ---------------- Requests ---------------- */
 
 function RequestsList() {
   const [requests, setRequests] = useState<PickupRequest[]>([]);
@@ -107,29 +108,35 @@ function RequestsList() {
   }
 }
 
-/* ---------------- Beskeder ---------------- */
+function Messages() {
+  const [conversations, setConversation] = useState<Conversation[]>([]);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
-function Notifications() {
-  const messages = [
-    {
-      id: 1,
-      userName: "Bo",
-      userImage: "https://placehold.co/100",
-      lastMessage: "Hej, jeg kan komme forbi i morgen kl. 14",
-      time: "10 min",
-      unread: true,
-    },
-    {
-      id: 2,
-      userName: "Anna",
-      userImage: "https://placehold.co/100",
-      lastMessage: "Tak for stolen!",
-      time: "1 dag",
-      unread: false,
-    },
-  ];
+  useFocusEffect(
+    useCallback(() => {
+      fetchConversations();
+    }, []),
+  );
 
-  if (messages.length === 0) {
+  const fetchConversations = async () => {
+    try {
+      const response = await getFetch("/api/messages/conversations/me");
+      if (!response.ok) {
+        setError("Noget gik galt - prøv igen");
+      }
+
+      const conversations = await response.json();
+      setConversation(conversations);
+    } catch (error) {
+      setError("Noget gik galt - prøv igen");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (conversations.length === 0) {
     return (
       <View style={styles.empty}>
         <Ionicons name="chatbubble-outline" size={48} color="#aaa" />
@@ -140,25 +147,43 @@ function Notifications() {
 
   return (
     <View style={styles.list}>
-      {messages.map((msg) => (
-        <TouchableOpacity key={msg.id} style={styles.messageCard}>
-          <Image source={{ uri: msg.userImage }} style={styles.messageImage} />
+      {conversations.map((con) => (
+        <TouchableOpacity
+          key={con.pickupId}
+          style={styles.messageCard}
+          onPress={() =>
+            router.push({
+              pathname: "/chat/[pickupId]",
+              params: {
+                pickupId: con.pickupId.toString(),
+                otherName: con.otherUserName,
+                otherImage: con.otherUserImage,
+              },
+            })
+          }
+        >
+          <Image
+            source={{ uri: con.otherUserImage }}
+            style={styles.messageImage}
+          />
           <View style={styles.messageInfo}>
             <View style={styles.messageHeader}>
-              <Text style={styles.messageName}>{msg.userName}</Text>
-              <Text style={styles.messageTime}>{msg.time}</Text>
+              <Text style={styles.messageName}>{con.otherUserName}</Text>
+              <Text style={styles.messageTime}>
+                {formatRelativeTime(con.lastMessageAt)}
+              </Text>
             </View>
             <Text
               style={[
                 styles.messagePreview,
-                msg.unread && styles.messagePreviewUnread,
+                con.unreadCount > 0 && styles.messagePreviewUnread,
               ]}
               numberOfLines={1}
             >
-              {msg.lastMessage}
+              {con.lastMessageContent ?? "Ingen beskeder endnu"}
             </Text>
           </View>
-          {msg.unread && <View style={styles.unreadDot} />}
+          {con.unreadCount > 0 && <View style={styles.unreadDot} />}
         </TouchableOpacity>
       ))}
     </View>
