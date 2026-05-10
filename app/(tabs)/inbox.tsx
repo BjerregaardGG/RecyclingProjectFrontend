@@ -126,8 +126,8 @@ function Messages() {
       if (!response.ok) {
         setError("Noget gik galt - prøv igen");
       }
-
       const conversations = await response.json();
+      console.log(conversations);
       setConversation(conversations);
     } catch (error) {
       setError("Noget gik galt - prøv igen");
@@ -158,6 +158,9 @@ function Messages() {
                 pickupId: con.pickupId.toString(),
                 otherName: con.otherUserName,
                 otherImage: con.otherUserImage,
+                otherUserId: con.otherUserId.toString(),
+                pickupImage: con.itemImage,
+                pickupTitle: con.itemName,
               },
             })
           }
@@ -167,12 +170,7 @@ function Messages() {
             style={styles.messageImage}
           />
           <View style={styles.messageInfo}>
-            <View style={styles.messageHeader}>
-              <Text style={styles.messageName}>{con.otherUserName}</Text>
-              <Text style={styles.messageTime}>
-                {formatRelativeTime(con.lastMessageAt)}
-              </Text>
-            </View>
+            <Text style={styles.messageName}>{con.otherUserName}</Text>
             <Text
               style={[
                 styles.messagePreview,
@@ -183,7 +181,12 @@ function Messages() {
               {con.lastMessageContent ?? "Ingen beskeder endnu"}
             </Text>
           </View>
-          {con.unreadCount > 0 && <View style={styles.unreadDot} />}
+          <View style={styles.messageRight}>
+            <Text style={styles.messageTime}>
+              {formatRelativeTime(con.lastMessageAt)}
+            </Text>
+            <Image source={{ uri: con.itemImage }} style={styles.itemImage} />
+          </View>
         </TouchableOpacity>
       ))}
     </View>
@@ -251,63 +254,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#888",
   },
-
-  /* Request card */
-  requestCard: {
-    flexDirection: "row",
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 12,
-    gap: 12,
-    alignItems: "center",
-    borderWidth: 0.5,
-    borderColor: "#e0e0e0",
-  },
-  requestImage: {
-    width: 56,
-    height: 56,
-    borderRadius: 8,
-    backgroundColor: "#eee",
-  },
-  requestInfo: {
-    flex: 1,
-  },
-  requestName: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#2c2c2c",
-    marginBottom: 2,
-  },
-  requestSubtext: {
-    fontSize: 13,
-    color: "#555",
-    marginBottom: 2,
-  },
-  requestTime: {
-    fontSize: 11,
-    color: "#888",
-  },
-  requestActions: {
-    flexDirection: "row",
-    gap: 6,
-  },
-  acceptButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#3a7d3a",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  rejectButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#e24b4a",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
   /* Message card */
   messageCard: {
     flexDirection: "row",
@@ -315,26 +261,33 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 12,
     gap: 12,
-    alignItems: "center",
+    alignItems: "flex-start",
     borderWidth: 0.5,
     borderColor: "#e0e0e0",
   },
   messageImage: {
+    marginTop: 8,
     width: 48,
     height: 48,
     borderRadius: 24,
     backgroundColor: "#eee",
   },
-  messageInfo: {
-    flex: 1,
+  itemImage: {
+    width: 48,
+    height: 48,
+    borderRadius: 10,
+    backgroundColor: "#eee",
   },
-  messageHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 4,
+  messageInfo: {
+    flex: 2,
+  },
+  messageRight: {
+    alignItems: "flex-end",
+    gap: 6,
   },
   messageName: {
     fontSize: 14,
+    marginTop: 1,
     fontWeight: "500",
     color: "#2c2c2c",
   },
@@ -345,15 +298,10 @@ const styles = StyleSheet.create({
   messagePreview: {
     fontSize: 13,
     color: "#888",
+    marginTop: 6,
   },
   messagePreviewUnread: {
     color: "#2c2c2c",
     fontWeight: "500",
-  },
-  unreadDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "#3a7d3a",
   },
 });

@@ -1,4 +1,3 @@
-// app/chat/[pickupId].tsx
 import { useState, useRef, useEffect } from "react";
 import {
   Image,
@@ -18,13 +17,26 @@ import { Message } from "@/interfaces/message";
 import { User } from "@/interfaces/user";
 import { formatRelativeTime } from "@/utils/dateUtils";
 import { getFetch } from "@/utils/fetchUtils";
+import { useHeaderHeight } from "@react-navigation/elements";
+import { Keyboard } from "react-native";
 
 export default function ChatScreen() {
-  const { pickupId, otherName, otherImage } = useLocalSearchParams<{
+  const {
+    pickupId,
+    otherName,
+    otherImage,
+    otherUserId,
+    pickupImage,
+    pickupTitle,
+  } = useLocalSearchParams<{
     pickupId: string;
     otherName?: string;
     otherImage: string;
+    otherUserId: string;
+    pickupImage: string;
+    pickupTitle: string;
   }>();
+  console.log("Params modtaget:", { pickupId, pickupTitle });
   const router = useRouter();
   const flatListRef = useRef<FlatList>(null);
   const { messages, connected, loading, sendMessage } = useChat(
@@ -32,6 +44,7 @@ export default function ChatScreen() {
   );
   const [text, setText] = useState("");
   const [userData, setUserData] = useState<User | null>(null);
+  const headerHeight = useHeaderHeight();
 
   // Scroll to the bottom when recieveing new messages
   useEffect(() => {
@@ -43,6 +56,18 @@ export default function ChatScreen() {
       );
     }
   }, [messages]);
+
+  useEffect(() => {
+    const keyboardDidShow = Keyboard.addListener("keyboardDidShow", () => {
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    });
+
+    return () => {
+      keyboardDidShow.remove();
+    };
+  }, []);
 
   const handleSend = () => {
     const trimmed = text.trim();
@@ -107,7 +132,7 @@ export default function ChatScreen() {
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+      keyboardVerticalOffset={headerHeight}
     >
       {/* Header */}
       <View style={styles.header}>
@@ -124,6 +149,25 @@ export default function ChatScreen() {
           </Text>
         </View>
       </View>
+
+      {/* Second Header */}
+      <TouchableOpacity
+        style={styles.secondHeader}
+        onPress={() =>
+          router.push({
+            pathname: "/pickup/[id]",
+            params: {
+              id: pickupId,
+              userId: otherUserId,
+            },
+          })
+        }
+      >
+        <Image source={{ uri: pickupImage }} style={styles.secondHeaderImage} />
+        <Text style={styles.secondHeaderTitle} numberOfLines={1}>
+          {pickupTitle}
+        </Text>
+      </TouchableOpacity>
 
       {/* Beskeder */}
       {loading ? (
@@ -213,6 +257,27 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: "#c8e6c9",
     marginTop: 2,
+  },
+  secondHeader: {
+    backgroundColor: "#0b6317",
+    paddingTop: 15,
+    paddingBottom: 15,
+    paddingHorizontal: 16,
+    flexDirection: "row",
+    gap: 12,
+  },
+  secondHeaderTitle: {
+    paddingTop: 22,
+    fontSize: 16,
+    color: "#fff",
+    fontWeight: "600",
+  },
+  secondHeaderImage: {
+    marginTop: 8,
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: "#eee",
   },
   centered: {
     flex: 1,
@@ -312,7 +377,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     marginHorizontal: 4,
     marginTop: 12,
-    marginRight: 8
+    marginRight: 8,
   },
   avatarFallback: {
     width: 32,

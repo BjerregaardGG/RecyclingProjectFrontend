@@ -7,9 +7,10 @@ import {
   StyleSheet,
   ScrollView,
 } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import { useCallback } from "react";
 import { Ionicons } from "@expo/vector-icons";
-import { getFetch, postFetch } from "@/utils/fetchUtils";
+import { getFetch, postFetch, deleteFetch } from "@/utils/fetchUtils";
 import { Item } from "@/interfaces/item";
 import { User } from "@/interfaces/user";
 import { calculateDistance } from "@/utils/locationUtils";
@@ -28,10 +29,12 @@ export default function ItemScreen() {
     null,
   );
 
-  useEffect(() => {
-    fetchItem();
-    fetchUser();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchItem();
+      fetchUser();
+    }, []),
+  );
 
   const locationIsPresent = (): boolean => {
     if (!item?.latitude || !item?.longitude) return false;
@@ -74,6 +77,22 @@ export default function ItemScreen() {
       const pickupRequest = await response.json();
       setPickupRequest(pickupRequest);
       setSuccess("Du er markeret som interesseret i at afhente denne ting!");
+    } catch (error) {
+      setError("Noget gik galt – prøv igen");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteItem = async () => {
+    try {
+      const response = await deleteFetch(`/api/items/${id}`);
+
+      if (!response.ok) {
+        setError("Noget gik galt - prøv igen");
+      }
+      const deletedItem = await response.json();
+      router.replace("/(tabs)");
     } catch (error) {
       setError("Noget gik galt – prøv igen");
     } finally {
@@ -142,21 +161,21 @@ export default function ItemScreen() {
           <Text style={styles.locationText}>{userData.city}</Text>
         </View>
 
-        <View style={styles.distanceAndButtonRow}>
-          <View style={styles.distanceContainer}>
-            <View style={locationIsPresent() ? styles.dot : styles.dotGray} />
-            <Text style={styles.distance}>
-              {locationIsPresent()
-                ? calculateDistance(
-                    Number(latitude),
-                    Number(longitude),
-                    item.latitude,
-                    item.longitude,
-                  )
-                : "Ukendt afstand"}
-            </Text>
+        {locationIsPresent() && (
+          <View style={styles.distanceAndButtonRow}>
+            <View style={styles.distanceContainer}>
+              <View style={styles.dot} />
+              <Text style={styles.distance}>
+                {calculateDistance(
+                  Number(latitude),
+                  Number(longitude),
+                  item.latitude,
+                  item.longitude,
+                )}
+              </Text>
+            </View>
           </View>
-        </View>
+        )}
       </View>
 
       {/* Sælger sektion */}
@@ -174,9 +193,15 @@ export default function ItemScreen() {
 
       {/* Knap */}
       <View style={styles.buttonSection}>
-        <TouchableOpacity style={styles.button} onPress={handlePickup}>
-          <Text style={styles.buttonText}>Snatch it</Text>
-        </TouchableOpacity>
+        {item.userId === userData.id ? (
+          <TouchableOpacity style={styles.buttonDelete} onPress={deleteItem}>
+            <Text style={styles.buttonText}>Slet snatch</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity style={styles.button} onPress={handlePickup}>
+            <Text style={styles.buttonText}>Snatch it</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </ScrollView>
   );
@@ -297,6 +322,13 @@ const styles = StyleSheet.create({
   },
   button: {
     backgroundColor: "#3a7d3a",
+    borderRadius: 12,
+    padding: 16,
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  buttonDelete: {
+    backgroundColor: "#742222",
     borderRadius: 12,
     padding: 16,
     alignItems: "center",

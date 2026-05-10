@@ -1,4 +1,4 @@
-import { use, useEffect, useState } from "react";
+import { useState } from "react";
 import { useFocusEffect } from "expo-router";
 import { useCallback } from "react";
 import {
@@ -18,6 +18,7 @@ import { getFetch } from "@/utils/fetchUtils";
 import { useRouter } from "expo-router";
 import * as Location from "expo-location";
 import { calculateDistance } from "@/utils/locationUtils";
+import { useMemo } from "react";
 
 const { width } = Dimensions.get("window");
 const cardWidth = (width - 48) / 2;
@@ -30,7 +31,6 @@ export default function HomeScreen() {
   const [initial, setInitial] = useState("");
   const [error, setError] = useState("");
   const [items, setItems] = useState<Item[]>([]);
-  const [filteredItems, setFilteredItems] = useState<Item[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -46,29 +46,27 @@ export default function HomeScreen() {
       fetchItems();
       fetchCategories();
       fetchUserName();
-
-      if (selectedCategory === "Alle") {
-        fetchItems();
-      } else {
-        fetchItemsByCategory();
-      }
-    }, [selectedCategory]),
+    }, []),
   );
 
-  function handleSearchQuery(query: any) {
-    setSearchQuery(query);
-    if (!query) {
-      setFilteredItems(items);
-      return;
+  const filteredItems = useMemo(() => {
+    let result = items;
+
+    if (selectedCategory !== "Alle") {
+      result = result.filter((item) => item.category === selectedCategory);
     }
 
-    const filteredItems = items.filter(
-      (item) =>
-        item.name.toLowerCase().includes(query.toLowerCase()) ||
-        item.description.toLowerCase().includes(query.toLowerCase),
-    );
-    setFilteredItems(filteredItems);
-  }
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(
+        (item) =>
+          item.name.toLowerCase().includes(q) ||
+          item.description.toLowerCase().includes(q),
+      );
+    }
+
+    return result;
+  }, [selectedCategory, searchQuery, items]);
 
   const getUserLocation = async () => {
     const hasAccess = await getUserAccess();
@@ -84,9 +82,20 @@ export default function HomeScreen() {
   };
 
   const getUserAccess = async (): Promise<boolean> => {
+    const { status: existingStatus } =
+      await Location.getForegroundPermissionsAsync();
+
+    if (existingStatus === "granted") {
+      setLocationAccess(true);
+      return true;
+    }
+
     const { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== "granted") {
       setLocationAccess(false);
+      alert(
+        "Snatch skal bruge din lokation for at kunne vise hvor langt genstande er fra dig. Du kan ændre dette i dine indstillinger.",
+      );
       return false;
     }
     setLocationAccess(true);
@@ -105,6 +114,7 @@ export default function HomeScreen() {
       const response = await getFetch("/api/items");
       const data = await response.json();
       setItems(data);
+      console.log(data);
     } catch (error) {
       setError("Noget gik galt – prøv igen");
     } finally {
@@ -119,20 +129,6 @@ export default function HomeScreen() {
       setCategories(data);
     } catch (error) {
       setError("Noget gik galt – prøv igen");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchItemsByCategory = async () => {
-    try {
-      const response = await getFetch(
-        `/api/items/category?category=${selectedCategory}`,
-      );
-      const data = await response.json();
-      setItems(data);
-    } catch (error) {
-      setError("Noget gik galt - prøv igen");
     } finally {
       setLoading(false);
     }
@@ -159,7 +155,7 @@ export default function HomeScreen() {
           placeholder="Søg..."
           placeholderTextColor="#aaa"
           value={searchQuery}
-          onChangeText={handleSearchQuery}
+          onChangeText={setSearchQuery}
         />
       </View>
 
@@ -215,24 +211,12 @@ export default function HomeScreen() {
           ))}
         </ScrollView>
 
-        {/* Range slider */}
-        <View style={styles.rangeWrapper}>
-          <Text style={styles.rangeLabel}>Din rækkevidde</Text>
-          <Text style={styles.rangeValue}>{range} km</Text>
-        </View>
-        <View style={styles.track}>
-          <View
-            style={[styles.trackFill, { width: `${(range / 20) * 100}%` }]}
-          />
-        </View>
-
         {/* Items */}
         <Text style={styles.sectionLabel}>
-          Snatches i dit nærområde (
-          {searchQuery ? filteredItems.length : items.length})
+          Snatches i dit nærområde ({filteredItems.length})
         </Text>
         <View style={styles.grid}>
-          {(searchQuery ? filteredItems : items).map((item) => (
+          {filteredItems.map((item) => (
             <TouchableOpacity
               key={item.id}
               style={styles.card}

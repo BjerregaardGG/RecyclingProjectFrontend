@@ -39,3 +39,16 @@ export async function patchFetch(endpoint: string): Promise<Response> {
     },
   });
 }
+
+export async function deleteFetch(endpoint: string): Promise<Response> {
+  const token = await AsyncStorage.getItem("token");
+
+  return await fetch(`${process.env.EXPO_PUBLIC_API_URL}${endpoint}`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+      "ngrok-skip-browser-warning": "true",
+    },
+  });
+}

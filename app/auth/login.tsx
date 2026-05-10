@@ -35,7 +35,6 @@ export default function LoginScreen() {
 
       const data = await response.json();
       await AsyncStorage.setItem("token", data.token);
-      console.log("Token gemt:", data.token);
       router.replace("/(tabs)");
     } catch (error) {
       setError("Noget gik galt – prøv igen");

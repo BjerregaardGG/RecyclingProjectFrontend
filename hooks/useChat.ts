@@ -32,7 +32,7 @@ export function useChat(pickupId: number | null) {
       }
 
       try {
-        await patchFetch(`/api/messages/pickup/${pickupId}/mark-read`);
+        await patchFetch(`/api/messages/pickup/${pickupId}/mark-as-read`);
       } catch (error) {
         console.error("Could not mark as read:", error);
       }

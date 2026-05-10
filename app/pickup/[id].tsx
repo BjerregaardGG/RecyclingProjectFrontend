@@ -8,11 +8,12 @@ import {
   ScrollView,
   Alert,
 } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter, useFocusEffect } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { getFetch, patchFetch } from "@/utils/fetchUtils";
 import { PickupRequest } from "@/interfaces/pickupRequest";
 import { User } from "@/interfaces/user";
+import { useCallback } from "react";
 import { getTimeRemaining, useCountdown, isExpired } from "@/utils/dateUtils";
 
 export default function PickupDetailScreen() {
@@ -26,10 +27,12 @@ export default function PickupDetailScreen() {
   // forces re-render every minute so that time remaining updates
   useCountdown();
 
-  useEffect(() => {
-    fetchRequest();
-    fetchUser();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchRequest();
+      fetchUser();
+    }, []),
+  );
 
   const fetchRequest = async () => {
     try {
@@ -40,6 +43,7 @@ export default function PickupDetailScreen() {
       }
       const data = await response.json();
       setRequest(data);
+      console.log(data);
     } catch (error) {
       setError("Noget gik galt – prøv igen");
     } finally {
@@ -267,6 +271,8 @@ export default function PickupDetailScreen() {
                       ? request.requesterName
                       : request.ownerName,
                     otherImage: otherUser.image,
+                    pickupImage: request.itemImage,
+                    pickupTitle: request.itemName,
                   },
                 });
               }}

@@ -14,9 +14,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { pickAndUploadImage } from "@/utils/cloudinaryUtils";
 import { postFetch } from "@/utils/fetchUtils";
 import { Category } from "@/interfaces/category";
-import { useEffect } from "react";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback, useEffect } from "react";
 import { getFetch } from "@/utils/fetchUtils";
 import { searchAdresses, Address } from "@/utils/locationUtils";
+import { Keyboard } from "react-native";
 
 export default function GiveScreen() {
   const [name, setName] = useState("");
@@ -34,9 +36,11 @@ export default function GiveScreen() {
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
 
-  useEffect(() => {
-    fetchCategories();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchCategories();
+    }, []),
+  );
 
   const handleLocationSearch = async (query: string) => {
     setAddressQuery(query);
@@ -103,7 +107,10 @@ export default function GiveScreen() {
       setSelectedCategory(null);
       setSecondTitle("");
       setSelectedAddress(null);
+      setAddressQuery("");
+      setAddresses([]);
       setError("");
+      router.replace("/(tabs)");
     } catch (error) {
       setError("Noget gik galt – prøv igen");
     } finally {
@@ -150,7 +157,7 @@ export default function GiveScreen() {
             onChangeText={setName}
           />
 
-          {/* Second description */}
+          {/* Second Title */}
           <Text style={styles.label}>Undertitel</Text>
           <TextInput
             style={styles.input}
@@ -266,7 +273,7 @@ const styles = StyleSheet.create({
   },
   imageUpload: {
     width: "100%",
-    height: 200,
+    height: 190,
     borderRadius: 12,
     overflow: "hidden",
     marginBottom: 16,
@@ -305,7 +312,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   textArea: {
-    height: 100,
+    height: 60,
     textAlignVertical: "top",
   },
   categories: {

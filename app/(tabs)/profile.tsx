@@ -10,8 +10,10 @@ import {
 } from "react-native";
 import { Item } from "@/interfaces/item";
 import { getFetch, patchFetch } from "@/utils/fetchUtils";
-import { useRouter } from "expo-router";
+import { useCallback } from "react";
+import { useFocusEffect } from "expo-router";
 import { User } from "@/interfaces/user";
+import { useRouter } from "expo-router";
 import { pickAndUploadImage } from "@/utils/cloudinaryUtils";
 
 const { width } = Dimensions.get("window");
@@ -24,16 +26,20 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  useEffect(() => {
-    fetchItems();
-    fetchUserData();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchItems();
+      fetchUserData();
+    }, []),
+  );
 
-  useEffect(() => {
-    if (userData) {
-      setUserData(userData);
-    }
-  }, [userData]);
+  useFocusEffect(
+    useCallback(() => {
+      if (userData) {
+        setUserData(userData);
+      }
+    }, [userData]),
+  );
 
   const handlePickImage = async () => {
     const url = await pickAndUploadImage();
@@ -83,7 +89,7 @@ export default function HomeScreen() {
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Profil</Text>
+        <Text style={styles.headerTitle}>{userData?.name}</Text>
       </View>
 
       {/* Profil sektion */}
@@ -115,7 +121,19 @@ export default function HomeScreen() {
         <Text style={styles.sectionLabel}>Dine opslag ({items.length})</Text>
         <View style={styles.grid}>
           {items.map((item) => (
-            <TouchableOpacity key={item.id} style={styles.card}>
+            <TouchableOpacity
+              key={item.id}
+              style={styles.card}
+              onPress={() =>
+                router.push({
+                  pathname: "/item/[id]",
+                  params: {
+                    id: item.id,
+                    userId: item.userId,
+                  },
+                })
+              }
+            >
               <Image style={styles.cardImage} source={{ uri: item.image }} />
               <View style={styles.cardBody}>
                 <Text style={styles.cardName}>{item.name}</Text>

@@ -42,7 +42,7 @@ export default function InboxScreen() {
               activeTab === "received" && styles.tabTextActive,
             ]}
           >
-            Modtaget
+            Indgående anmodninger
           </Text>
         </TouchableOpacity>
 
@@ -56,7 +56,7 @@ export default function InboxScreen() {
               activeTab === "sent" && styles.tabTextActive,
             ]}
           >
-            Afsendte
+            Udgående anmodninger
           </Text>
         </TouchableOpacity>
       </View>

@@ -4,7 +4,7 @@ export interface Item {
   description: string;
   secondDescription: string;
   image: string;
-  categoryName: string;
+  category: string;
   userId: number;
   latitude: number;
   longitude: number;
