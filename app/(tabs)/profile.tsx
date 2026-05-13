@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   View,
   Text,
@@ -7,24 +7,44 @@ import {
   StyleSheet,
   Image,
   Dimensions,
+  Modal,
+  Pressable,
 } from "react-native";
 import { Item } from "@/interfaces/item";
 import { getFetch, patchFetch } from "@/utils/fetchUtils";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { useFocusEffect } from "expo-router";
 import { User } from "@/interfaces/user";
 import { useRouter } from "expo-router";
+import { SimpleLineIcons } from "@expo/vector-icons";
 import { pickAndUploadImage } from "@/utils/cloudinaryUtils";
 
 const { width } = Dimensions.get("window");
 const cardWidth = (width - 48) / 2;
+const FILTER_OPTIONS = [
+  { label: "Tilgængelige", value: "AVAILABLE" },
+  { label: "Reserveret", value: "RESERVED" },
+  { label: "Afhentet", value: "GIVEN_AWAY" },
+  { label: "Alle", value: "all" },
+];
+const STATUS_COLORS: Record<string, string> = {
+  AVAILABLE: "#888",
+  RESERVED: "#e6a23c",
+  GIVEN_AWAY: "#32719b",
+};
 
-export default function HomeScreen() {
+type FilterValue = (typeof FILTER_OPTIONS)[number]["value"];
+
+export default function ProfileScreen() {
   const [userData, setUserData] = useState<User | null>(null);
   const [error, setError] = useState("");
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const [filter, setFilter] = useState<FilterValue>("AVAILABLE");
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  const currentLabel = FILTER_OPTIONS.find((o) => o.value === filter)?.label;
 
   useFocusEffect(
     useCallback(() => {
@@ -33,13 +53,18 @@ export default function HomeScreen() {
     }, []),
   );
 
-  useFocusEffect(
-    useCallback(() => {
-      if (userData) {
-        setUserData(userData);
-      }
-    }, [userData]),
-  );
+  const filteredItems = useMemo(() => {
+    let result =
+      filter === "all" ? items : items.filter((item) => item.status === filter);
+
+    return [...result].sort((a, b) => {
+      if (!a.reservedAt) return 1;
+      if (!b.reservedAt) return -1;
+      return (
+        new Date(b.reservedAt).getTime() - new Date(a.reservedAt).getTime()
+      );
+    });
+  }, [items, filter]);
 
   const handlePickImage = async () => {
     const url = await pickAndUploadImage();
@@ -59,6 +84,7 @@ export default function HomeScreen() {
       const response = await getFetch("/api/items/me");
       const data = await response.json();
       setItems(data);
+      console.log(data);
     } catch (error) {
       setError("Noget gik galt – prøv igen");
     } finally {
@@ -107,20 +133,69 @@ export default function HomeScreen() {
             </Text>
           </View>
         )}
-
-        {/* Image upload */}
-        <TouchableOpacity onPress={handlePickImage}>
-          <View>
-            <Text>Skift profilbillede</Text>
-          </View>
-        </TouchableOpacity>
       </View>
+
+      {/* Image upload */}
+      <TouchableOpacity
+        onPress={handlePickImage}
+        style={styles.changeImageButton}
+      >
+        <Text style={styles.changeImageText}>Skift profilbillede</Text>
+      </TouchableOpacity>
+
+      {/* Dropdown modal */}
+      <Modal
+        visible={dropdownOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setDropdownOpen(false)}
+      >
+        <Pressable
+          style={styles.modalBackdrop}
+          onPress={() => setDropdownOpen(false)}
+        >
+          <View style={styles.dropdown}>
+            {FILTER_OPTIONS.map((option) => (
+              <TouchableOpacity
+                key={option.value}
+                style={[
+                  styles.dropdownItem,
+                  filter === option.value && styles.dropdownItemActive,
+                ]}
+                onPress={() => {
+                  setFilter(option.value);
+                  setDropdownOpen(false);
+                }}
+              >
+                <Text
+                  style={[
+                    styles.dropdownItemText,
+                    filter === option.value && styles.dropdownItemTextActive,
+                  ]}
+                >
+                  {option.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </Pressable>
+      </Modal>
 
       <View style={styles.content}>
         {/* Items */}
-        <Text style={styles.sectionLabel}>Dine opslag ({items.length})</Text>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionLabel}>Dine opslag ({currentLabel})</Text>
+          <TouchableOpacity onPress={() => setDropdownOpen(true)}>
+            <SimpleLineIcons
+              style={styles.sectionOptions}
+              name="options"
+              size={20}
+              color="#3a7d3a"
+            />
+          </TouchableOpacity>
+        </View>
         <View style={styles.grid}>
-          {items.map((item) => (
+          {filteredItems.map((item) => (
             <TouchableOpacity
               key={item.id}
               style={styles.card}
@@ -137,8 +212,13 @@ export default function HomeScreen() {
               <Image style={styles.cardImage} source={{ uri: item.image }} />
               <View style={styles.cardBody}>
                 <Text style={styles.cardName}>{item.name}</Text>
-                <Text style={styles.cardDescription}>
-                  {item.secondDescription}
+                <Text
+                  style={[
+                    styles.cardDescription,
+                    { color: STATUS_COLORS[item.status] },
+                  ]}
+                >
+                  {FILTER_OPTIONS.find((o) => o.value === item.status)?.label}
                 </Text>
               </View>
             </TouchableOpacity>
@@ -154,29 +234,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f2f5f0",
   },
-  imageUpload: {
-    width: "100%",
-    height: 200,
-    borderRadius: 12,
-    overflow: "hidden",
-    marginBottom: 16,
-    borderWidth: 0.5,
-    borderColor: "#e0e0e0",
-  },
   image: {
     width: "100%",
     height: "100%",
-  },
-  imagePlaceholder: {
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-  },
-  imagePlaceholderText: {
-    fontSize: 13,
-    color: "#aaa",
   },
   header: {
     backgroundColor: "#3a7d3a",
@@ -193,7 +253,23 @@ const styles = StyleSheet.create({
   },
   profileSection: {
     alignItems: "center",
-    paddingVertical: 24,
+    paddingTop: 24,
+    paddingBottom: 12,
+  },
+  changeImageButton: {
+    backgroundColor: "#fff",
+    borderWidth: 1.5,
+    borderColor: "#3a7d3a",
+    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    marginRight: 8,
+    alignSelf: "center",
+  },
+  changeImageText: {
+    fontSize: 12,
+    color: "#3a7d3a",
+    fontWeight: "500",
   },
   profileImage: {
     width: 120,
@@ -201,7 +277,6 @@ const styles = StyleSheet.create({
     borderRadius: 60,
     borderWidth: 3,
     borderColor: "#fff",
-    marginBottom: 12,
   },
   profileAvatar: {
     width: 120,
@@ -212,7 +287,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderWidth: 3,
     borderColor: "#fff",
-    marginBottom: 12,
   },
   profileAvatarText: {
     fontSize: 42,
@@ -227,11 +301,54 @@ const styles = StyleSheet.create({
   content: {
     padding: 16,
   },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.2)",
+    alignItems: "flex-end",
+    paddingTop: 318,
+    paddingRight: 16,
+  },
+  dropdown: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    paddingVertical: 10,
+    minWidth: 120,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  dropdownItem: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  dropdownItemActive: {
+    backgroundColor: "#f0f7f0",
+  },
+  dropdownItemText: {
+    fontSize: 14,
+    color: "#2c2c2c",
+  },
+  dropdownItemTextActive: {
+    color: "#3a7d3a",
+    fontWeight: "500",
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 4,
+  },
   sectionLabel: {
     fontSize: 13,
     fontWeight: "500",
     color: "#3a7d3a",
     marginBottom: 10,
+    marginLeft: 4,
+  },
+  sectionOptions: {
+    marginRight: 8,
   },
   grid: {
     flexDirection: "row",
@@ -261,7 +378,7 @@ const styles = StyleSheet.create({
   },
   cardDescription: {
     fontSize: 9,
-    fontWeight: "200",
+    fontWeight: "500",
     color: "#2c2c2c",
     marginBottom: 2,
   },

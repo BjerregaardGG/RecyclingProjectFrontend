@@ -22,6 +22,7 @@ export default function ItemScreen() {
   const router = useRouter();
   const [item, setItem] = useState<Item | null>(null);
   const [userData, setUserData] = useState<User | null>(null);
+  const [loggedInUserData, setLoggedInUserData] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -33,6 +34,7 @@ export default function ItemScreen() {
     useCallback(() => {
       fetchItem();
       fetchUser();
+      fetchLoggedInUser();
     }, []),
   );
 
@@ -62,6 +64,21 @@ export default function ItemScreen() {
       console.log(userData);
     } catch (error) {
       setError("Noget gik galt - prøv igen");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchLoggedInUser = async () => {
+    try {
+      const response = await getFetch(`/api/users/me`);
+      if (!response.ok) {
+        setError("Kunne ikke indsamle bruger data");
+      }
+      const data = await response.json();
+      setLoggedInUserData(data);
+    } catch (e) {
+      setError("Noget gik galt");
     } finally {
       setLoading(false);
     }
@@ -123,6 +140,71 @@ export default function ItemScreen() {
       </View>
     );
   }
+
+  if (!loggedInUserData) {
+    return (
+      <View style={styles.centered}>
+        <Text>Bruger ikke fundet</Text>
+      </View>
+    );
+  }
+
+  const renderButton = () => {
+    const isOwner = item.userId === loggedInUserData.id;
+    const status = item.status;
+
+    if (isOwner && status === "AVAILABLE") {
+      return (
+        <TouchableOpacity style={styles.buttonDelete} onPress={deleteItem}>
+          <Text style={styles.buttonText}>Slet snatch</Text>
+        </TouchableOpacity>
+      );
+    }
+
+    if (isOwner && status === "RESERVED") {
+      return (
+        <View style={styles.statusBox}>
+          <Ionicons name="time-outline" size={20} color="#888" />
+          <Text style={styles.statusText}>
+            Reserveret — afventer afhentning
+          </Text>
+        </View>
+      );
+    }
+
+    if (isOwner && status === "GIVEN_AWAY") {
+      return (
+        <View style={styles.statusBox}>
+          <Ionicons name="checkmark-done-outline" size={20} color="#3a7d3a" />
+          <Text style={styles.statusText}>Afhentet</Text>
+        </View>
+      );
+    }
+
+    if (!isOwner && status === "AVAILABLE") {
+      return (
+        <TouchableOpacity style={styles.button} onPress={handlePickup}>
+          <Text style={styles.buttonText}>Snatch it</Text>
+        </TouchableOpacity>
+      );
+    }
+
+    if (!isOwner && status === "RESERVED") {
+      return (
+        <View style={styles.statusBox}>
+          <Ionicons name="time-outline" size={20} color="#888" />
+          <Text style={styles.statusText}>Allerede reserveret</Text>
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.statusBox}>
+        <Ionicons name="close-circle-outline" size={20} color="#888" />
+        <Text style={styles.statusText}>Denne genstand er afhentet</Text>
+      </View>
+    );
+  };
 
   return (
     <ScrollView style={styles.container}>
@@ -192,17 +274,7 @@ export default function ItemScreen() {
       </View>
 
       {/* Knap */}
-      <View style={styles.buttonSection}>
-        {item.userId === userData.id ? (
-          <TouchableOpacity style={styles.buttonDelete} onPress={deleteItem}>
-            <Text style={styles.buttonText}>Slet snatch</Text>
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity style={styles.button} onPress={handlePickup}>
-            <Text style={styles.buttonText}>Snatch it</Text>
-          </TouchableOpacity>
-        )}
-      </View>
+      <View style={styles.buttonSection}>{renderButton()}</View>
     </ScrollView>
   );
 }
@@ -362,5 +434,20 @@ const styles = StyleSheet.create({
     fontSize: 13,
     textAlign: "center",
     marginBottom: 12,
+  },
+  statusBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: "#f5f5f5",
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: 12,
+    justifyContent: "center",
+  },
+  statusText: {
+    fontSize: 14,
+    color: "#555",
+    fontWeight: "500",
   },
 });

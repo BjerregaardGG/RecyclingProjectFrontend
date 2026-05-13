@@ -8,4 +8,6 @@ export interface Item {
   userId: number;
   latitude: number;
   longitude: number;
+  status: string;
+  reservedAt: string | null;
 }
