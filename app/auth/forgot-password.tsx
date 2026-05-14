@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { verifyEmail } from "@/utils/authUtils";
 import { useRouter } from "expo-router";
+import { Mascot } from "@/components/Mascot";
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
@@ -50,6 +51,9 @@ export default function ForgotPasswordScreen() {
         <Text style={styles.backText}>← Tilbage</Text>
       </TouchableOpacity>
 
+      <View style={styles.sadState}>
+        <Mascot mood="sad" size={160} />
+      </View>
       <Text style={styles.title}>Glemt password?</Text>
       <Text style={styles.subtitle}>
         Indtast din email så sender vi dig et link
@@ -76,6 +80,12 @@ export default function ForgotPasswordScreen() {
 }
 
 const styles = StyleSheet.create({
+  sadState: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 15,
+    paddingHorizontal: 32,
+  },
   container: {
     flex: 1,
     backgroundColor: "#f2f5f0",

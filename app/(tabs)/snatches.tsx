@@ -16,6 +16,7 @@ import { useFocusEffect } from "expo-router";
 import { formatRelativeTime } from "@/utils/dateUtils";
 import { useRouter } from "expo-router";
 import { getTimeRemaining, useCountdown, isExpired } from "@/utils/dateUtils";
+import { Mascot } from "@/components/Mascot";
 
 type Tab = "received" | "sent";
 // forces re-render every minute so that time remaining updates
@@ -147,9 +148,11 @@ function ReceivedList() {
 
   if (requests.length === 0) {
     return (
-      <View style={styles.empty}>
-        <Ionicons name="file-tray-outline" size={48} color="#aaa" />
-        <Text style={styles.emptyText}>Ingen modtagne anmodninger</Text>
+      <View style={styles.emptyState}>
+        <Mascot mood="sad" size={160} />
+        <Text style={styles.emptyText}>
+          Du har ingen indgående andmodninger
+        </Text>
       </View>
     );
   }
@@ -285,9 +288,9 @@ function SentList() {
 
   if (requests.length === 0) {
     return (
-      <View style={styles.empty}>
-        <Ionicons name="file-tray-outline" size={48} color="#aaa" />
-        <Text style={styles.emptyText}>Ingen afsendte anmodninger</Text>
+      <View style={styles.emptyState}>
+        <Mascot mood="sad" size={160} />
+        <Text style={styles.emptyText}>Du har ingen udgående anmodninger</Text>
       </View>
     );
   }
@@ -366,6 +369,19 @@ function SentList() {
 }
 
 const styles = StyleSheet.create({
+  emptyState: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 60,
+    paddingHorizontal: 32,
+    gap: 16,
+  },
+  emptyText: {
+    fontSize: 14,
+    color: "#888",
+    textAlign: "center",
+    lineHeight: 20,
+  },
   container: {
     flex: 1,
     backgroundColor: "#f2f5f0",
@@ -437,10 +453,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingVertical: 80,
     gap: 12,
-  },
-  emptyText: {
-    fontSize: 14,
-    color: "#888",
   },
   loadingText: {
     textAlign: "center",

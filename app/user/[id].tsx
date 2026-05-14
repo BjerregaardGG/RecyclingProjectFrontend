@@ -7,45 +7,27 @@ import {
   StyleSheet,
   Image,
   Dimensions,
-  Modal,
-  Pressable,
 } from "react-native";
 import { Item } from "@/interfaces/item";
-import { getFetch, patchFetch } from "@/utils/fetchUtils";
-import { useCallback, useMemo } from "react";
+import { getFetch } from "@/utils/fetchUtils";
+import { useCallback } from "react";
 import { useFocusEffect } from "expo-router";
 import { User } from "@/interfaces/user";
 import { useRouter } from "expo-router";
-import { SimpleLineIcons } from "@expo/vector-icons";
-import { pickAndUploadImage } from "@/utils/cloudinaryUtils";
+import { Ionicons } from "@expo/vector-icons";
+import { useLocalSearchParams } from "expo-router";
 import { Mascot } from "@/components/Mascot";
 
 const { width } = Dimensions.get("window");
 const cardWidth = (width - 48) / 2;
-const FILTER_OPTIONS = [
-  { label: "Tilgængelige", value: "AVAILABLE" },
-  { label: "Reserveret", value: "RESERVED" },
-  { label: "Afhentet", value: "GIVEN_AWAY" },
-  { label: "Alle", value: "all" },
-];
-const STATUS_COLORS: Record<string, string> = {
-  AVAILABLE: "#888",
-  RESERVED: "#e6a23c",
-  GIVEN_AWAY: "#32719b",
-};
 
-type FilterValue = (typeof FILTER_OPTIONS)[number]["value"];
-
-export default function ProfileScreen() {
+export default function UserScreen() {
+  const { id } = useLocalSearchParams();
   const [userData, setUserData] = useState<User | null>(null);
   const [error, setError] = useState("");
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-  const [filter, setFilter] = useState<FilterValue>("AVAILABLE");
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-
-  const currentLabel = FILTER_OPTIONS.find((o) => o.value === filter)?.label;
 
   useFocusEffect(
     useCallback(() => {
@@ -54,35 +36,24 @@ export default function ProfileScreen() {
     }, []),
   );
 
-  const filteredItems = useMemo(() => {
-    let result =
-      filter === "all" ? items : items.filter((item) => item.status === filter);
-
-    return [...result].sort((a, b) => {
-      if (!a.reservedAt) return 1;
-      if (!b.reservedAt) return -1;
-      return (
-        new Date(b.reservedAt).getTime() - new Date(a.reservedAt).getTime()
-      );
-    });
-  }, [items, filter]);
-
-  const handlePickImage = async () => {
-    const url = await pickAndUploadImage();
-    if (url) {
-      uploadPicture(url);
-    }
-  };
-
   const fetchUserData = async () => {
-    const response = await getFetch("/api/users/me");
-    const data = await response.json();
-    setUserData(data);
+    try {
+      const response = await getFetch(`/api/users/${id}`);
+      if (!response.ok) {
+        setError("Problemer med at indsamle brugerdata");
+      }
+      const data = await response.json();
+      setUserData(data);
+    } catch (e) {
+      setError("Noget gik galt - prøv igen");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fetchItems = async () => {
     try {
-      const response = await getFetch("/api/items/me");
+      const response = await getFetch(`/api/items/user/${id}`);
       const data = await response.json();
       setItems(data);
       console.log(data);
@@ -93,27 +64,12 @@ export default function ProfileScreen() {
     }
   };
 
-  const uploadPicture = async (url: string) => {
-    try {
-      console.log(url);
-      const response = await patchFetch(
-        `/api/users/me/image?image=${encodeURIComponent(url)}`,
-      );
-
-      if (!response.ok) {
-        setError("Noget gik galt - prøv igen");
-        return;
-      }
-      setUserData((prev) => (prev ? { ...prev, image: url } : prev));
-    } catch (error) {
-      setError("Noget gik galt - prøv igen");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+        <Ionicons name="arrow-back-outline" size={24} color="#fff" />
+      </TouchableOpacity>
+
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{userData?.name}</Text>
@@ -136,81 +92,19 @@ export default function ProfileScreen() {
         )}
       </View>
 
-      {/* Image upload */}
-      <TouchableOpacity
-        onPress={handlePickImage}
-        style={styles.changeImageButton}
-      >
-        <Text style={styles.changeImageText}>Skift profilbillede</Text>
-      </TouchableOpacity>
-
-      {/* Dropdown modal */}
-      <Modal
-        visible={dropdownOpen}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setDropdownOpen(false)}
-      >
-        <Pressable
-          style={styles.modalBackdrop}
-          onPress={() => setDropdownOpen(false)}
-        >
-          <View style={styles.dropdown}>
-            {FILTER_OPTIONS.map((option) => (
-              <TouchableOpacity
-                key={option.value}
-                style={[
-                  styles.dropdownItem,
-                  filter === option.value && styles.dropdownItemActive,
-                ]}
-                onPress={() => {
-                  setFilter(option.value);
-                  setDropdownOpen(false);
-                }}
-              >
-                <Text
-                  style={[
-                    styles.dropdownItemText,
-                    filter === option.value && styles.dropdownItemTextActive,
-                  ]}
-                >
-                  {option.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </Pressable>
-      </Modal>
-
       <View style={styles.content}>
         {/* Items */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionLabel}>Dine opslag ({currentLabel})</Text>
-          <TouchableOpacity onPress={() => setDropdownOpen(true)}>
-            <SimpleLineIcons
-              style={styles.sectionOptions}
-              name="options"
-              size={20}
-              color="#3a7d3a"
-            />
-          </TouchableOpacity>
+          <Text style={styles.sectionLabel}>Opslag ({items.length})</Text>
         </View>
-
-        {filteredItems.length === 0 ? (
+        {items.length === 0 ? (
           <View style={styles.emptyState}>
             <Mascot mood="sad" size={160} />
-            {currentLabel === "Alle" ? (
-              <Text style={styles.emptyText}>Der er ingen snatches</Text>
-            ) : (
-              <Text style={styles.emptyText}>
-                Der er ingen {currentLabel?.charAt(0).toLowerCase()}
-                {currentLabel?.slice(1)} snatches
-              </Text>
-            )}
+            <Text style={styles.emptyText}>Der er ingen åbne snatches</Text>
           </View>
         ) : (
           <View style={styles.grid}>
-            {filteredItems.map((item) => (
+            {items.map((item) => (
               <TouchableOpacity
                 key={item.id}
                 style={styles.card}
@@ -227,14 +121,7 @@ export default function ProfileScreen() {
                 <Image style={styles.cardImage} source={{ uri: item.image }} />
                 <View style={styles.cardBody}>
                   <Text style={styles.cardName}>{item.name}</Text>
-                  <Text
-                    style={[
-                      styles.cardDescription,
-                      { color: STATUS_COLORS[item.status] },
-                    ]}
-                  >
-                    {FILTER_OPTIONS.find((o) => o.value === item.status)?.label}
-                  </Text>
+                  <Text style={styles.cardDescription}></Text>
                 </View>
               </TouchableOpacity>
             ))}
@@ -259,6 +146,15 @@ const styles = StyleSheet.create({
     textAlign: "center",
     lineHeight: 20,
   },
+  backButton: {
+    position: "absolute",
+    top: 52,
+    left: 16,
+    zIndex: 10,
+    backgroundColor: "rgba(0,0,0,0.3)",
+    borderRadius: 20,
+    padding: 6,
+  },
   container: {
     flex: 1,
     backgroundColor: "#f2f5f0",
@@ -272,7 +168,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 16,
     paddingTop: 52,
-    paddingBottom: 12,
+    paddingBottom: 30,
   },
   headerTitle: {
     fontSize: 16,

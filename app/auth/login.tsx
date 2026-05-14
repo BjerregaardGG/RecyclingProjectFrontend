@@ -9,6 +9,7 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage"; // To save the Web token
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { Mascot } from "@/components/Mascot";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -43,6 +44,9 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.container}>
+      <View style={styles.happyState}>
+        <Mascot mood="happy" size={160} />
+      </View>
       <Text style={styles.title}>Wastey</Text>
       <Text style={styles.subtitle}>Log ind på din konto</Text>
 
@@ -95,6 +99,12 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
+  happyState: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 15,
+    paddingHorizontal: 32,
+  },
   container: {
     flex: 1,
     backgroundColor: "#f2f5f0",

@@ -209,17 +209,28 @@ export default function PickupDetailScreen() {
       </View>
 
       {/* User section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Bruger</Text>
-        <View style={styles.userRow}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>
-              {request.requesterName?.substring(0, 1).toUpperCase()}
-            </Text>
+      <TouchableOpacity
+        onPress={() => {
+          router.push({
+            pathname: "/user/[id]",
+            params: {
+              id: isOwner ? request.requesterId : request.ownerId,
+            },
+          });
+        }}
+      >
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Bruger</Text>
+          <View style={styles.userRow}>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>
+                {request.requesterName?.substring(0, 1).toUpperCase()}
+              </Text>
+            </View>
+            <Text style={styles.userName}>{otherUser?.name}</Text>
           </View>
-          <Text style={styles.userName}>{otherUser?.name}</Text>
         </View>
-      </View>
+      </TouchableOpacity>
 
       {/* Adresse sektion (kun når accepteret) */}
       {isAccepted && request.pickupAddress && (

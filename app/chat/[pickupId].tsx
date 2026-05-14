@@ -144,9 +144,6 @@ export default function ChatScreen() {
         </TouchableOpacity>
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>{otherName ?? "Chat"}</Text>
-          <Text style={styles.headerStatus}>
-            {connected ? "Online" : "Forbinder..."}
-          </Text>
         </View>
       </View>
 

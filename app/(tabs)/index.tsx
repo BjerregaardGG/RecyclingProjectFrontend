@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useFocusEffect } from "expo-router";
 import { useCallback } from "react";
+import { Mascot } from "@/components/Mascot";
 import {
   View,
   Text,
@@ -215,57 +216,82 @@ export default function HomeScreen() {
         <Text style={styles.sectionLabel}>
           Snatches i dit nærområde ({filteredItems.length})
         </Text>
-        <View style={styles.grid}>
-          {filteredItems.map((item) => (
-            <TouchableOpacity
-              key={item.id}
-              style={styles.card}
-              onPress={() =>
-                router.push({
-                  pathname: "/item/[id]",
-                  params: {
-                    id: item.id,
-                    userId: item.userId,
-                    latitude: userLocation?.latitude,
-                    longitude: userLocation?.longitude,
-                  },
-                })
-              }
-            >
-              <Image
-                style={styles.cardImage}
-                source={{
-                  uri: item.image,
-                }}
-              />
-              <View style={styles.cardBody}>
-                <Text style={styles.cardName}>{item.name}</Text>
-                <Text style={styles.cardDescription}>
-                  {item.secondDescription}
-                </Text>
-                <View style={styles.cardMeta}>
-                  <View style={locationAccess ? styles.dot : styles.dotGray} />
-                  <Text style={styles.cardDistance}>
-                    {userLocation && item.latitude && item.longitude
-                      ? calculateDistance(
-                          userLocation.latitude,
-                          userLocation.longitude,
-                          item.latitude,
-                          item.longitude,
-                        )
-                      : ""}
+
+        {filteredItems.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Mascot mood="sad" size={160} />
+            <Text style={styles.emptyText}>
+              Kunne ikke finde snatches i dit nærområde
+            </Text>
+          </View>
+        ) : (
+          <View style={styles.grid}>
+            {filteredItems.map((item) => (
+              <TouchableOpacity
+                key={item.id}
+                style={styles.card}
+                onPress={() =>
+                  router.push({
+                    pathname: "/item/[id]",
+                    params: {
+                      id: item.id,
+                      userId: item.userId,
+                      latitude: userLocation?.latitude,
+                      longitude: userLocation?.longitude,
+                    },
+                  })
+                }
+              >
+                <Image
+                  style={styles.cardImage}
+                  source={{
+                    uri: item.image,
+                  }}
+                />
+                <View style={styles.cardBody}>
+                  <Text style={styles.cardName}>{item.name}</Text>
+                  <Text style={styles.cardDescription}>
+                    {item.secondDescription}
                   </Text>
+                  <View style={styles.cardMeta}>
+                    <View
+                      style={locationAccess ? styles.dot : styles.dotGray}
+                    />
+                    <Text style={styles.cardDistance}>
+                      {userLocation && item.latitude && item.longitude
+                        ? calculateDistance(
+                            userLocation.latitude,
+                            userLocation.longitude,
+                            item.latitude,
+                            item.longitude,
+                          )
+                        : ""}
+                    </Text>
+                  </View>
                 </View>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
       </View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  emptyState: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 60,
+    paddingHorizontal: 32,
+    gap: 16,
+  },
+  emptyText: {
+    fontSize: 14,
+    color: "#888",
+    textAlign: "center",
+    lineHeight: 20,
+  },
   container: {
     flex: 1,
     backgroundColor: "#f2f5f0",

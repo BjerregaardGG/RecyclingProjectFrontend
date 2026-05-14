@@ -16,6 +16,7 @@ import { User } from "@/interfaces/user";
 import { calculateDistance } from "@/utils/locationUtils";
 import { PickupRequest } from "@/interfaces/pickupRequest";
 import InfoTooltip from "@/components/InfoToolTip";
+import { Mascot } from "@/components/Mascot";
 
 export default function ItemScreen() {
   const { id, userId, latitude, longitude } = useLocalSearchParams();
@@ -208,30 +209,37 @@ export default function ItemScreen() {
 
   return (
     <ScrollView style={styles.container}>
-      {/* Tilbage knap */}
       <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
         <Ionicons name="arrow-back-outline" size={24} color="#fff" />
       </TouchableOpacity>
 
-      {/* Billede */}
       <Image source={{ uri: item.image }} style={styles.image} />
 
-      {/* Hoved sektion */}
       <View style={styles.section}>
-        {error ? <Text style={styles.error}>{error}</Text> : null}
-        {success ? <Text style={styles.success}>{success}</Text> : null}
+        {error ? (
+          <View style={styles.stateView}>
+            <Mascot mood="happy" size={160} />
+            <Text style={styles.stateText}>
+              Du har allerede anmodet om at snatche denne item!
+            </Text>
+          </View>
+        ) : null}
+        {success ? (
+          <View style={styles.stateView}>
+            <Mascot mood="excited" size={160} />
+            <Text style={styles.stateText}>Du er nu i kø til denne item!</Text>
+          </View>
+        ) : null}
 
         <Text style={styles.name}>{item.name}</Text>
         <Text style={styles.secondDescription}>{item.secondDescription}</Text>
       </View>
 
-      {/* Beskrivelse sektion */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Beskrivelse</Text>
         <Text style={styles.description}>{item.description}</Text>
       </View>
 
-      {/* Afhentning & Afstand sektion */}
       <View style={styles.section}>
         <InfoTooltip
           sectionTitle="Afhentningssted"
@@ -260,26 +268,48 @@ export default function ItemScreen() {
         )}
       </View>
 
-      {/* Sælger sektion */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Udbydes af</Text>
-        <View style={styles.userRow}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>
-              {userData?.name?.substring(0, 1).toUpperCase()}
-            </Text>
+      <TouchableOpacity
+        onPress={() => {
+          router.push({
+            pathname: "/user/[id]",
+            params: {
+              id: userData.id,
+            },
+          });
+        }}
+      >
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Udbydes af</Text>
+          <View style={styles.userRow}>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>
+                {userData?.name?.substring(0, 1).toUpperCase()}
+              </Text>
+            </View>
+            <Text style={styles.userName}>{userData?.name}</Text>
           </View>
-          <Text style={styles.userName}>{userData?.name}</Text>
         </View>
-      </View>
+      </TouchableOpacity>
 
-      {/* Knap */}
       <View style={styles.buttonSection}>{renderButton()}</View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+  stateView: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 60,
+    paddingHorizontal: 32,
+    gap: 16,
+  },
+  stateText: {
+    fontSize: 14,
+    color: "#888",
+    textAlign: "center",
+    lineHeight: 20,
+  },
   container: {
     flex: 1,
     backgroundColor: "#f2f5f0",
