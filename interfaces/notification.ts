@@ -1,8 +1,10 @@
 export interface Notification {
   id: number;
+  userId: number;
+  otherUserId: number;
   type: string;
   message: string;
-  pickupId: number | null;
-  read: boolean;
+  relatedId: number | null;
+  isRead: boolean;
   createdAt: string;
 }

@@ -8,18 +8,19 @@ import {
   Image,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { PickupRequest } from "@/interfaces/pickupRequest";
-import { getFetch, patchFetch } from "@/utils/fetchUtils";
+import { getFetch } from "@/utils/fetchUtils";
 import { useFocusEffect } from "expo-router";
 import { useRouter } from "expo-router";
-import { Message } from "@/interfaces/message";
 import { Conversation } from "@/interfaces/conversation";
 import { formatRelativeTime } from "@/utils/dateUtils";
+import { Mascot } from "@/components/Mascot";
+import { useNotifications } from "@/contexts/NotificationContexts";
 
 type Tab = "notifications" | "messages";
 
 export default function InboxScreen() {
   const [activeTab, setActiveTab] = useState<Tab>("notifications");
+  const { unreadCount } = useNotifications();
 
   return (
     <View style={styles.container}>
@@ -64,47 +65,106 @@ export default function InboxScreen() {
 
       {/* Content */}
       <ScrollView style={styles.content}>
-        {activeTab === "notifications" ? <RequestsList /> : <Messages />}
+        {activeTab === "notifications" ? <NotificationsList /> : <Messages />}
       </ScrollView>
     </View>
   );
 }
 
-function RequestsList() {
-  const [requests, setRequests] = useState<PickupRequest[]>([]);
+function NotificationsList() {
+  const { notifications, refresh, markAllAsRead } = useNotifications();
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useFocusEffect(
     useCallback(() => {
-      fetchRequests();
-    }, []),
+      refresh();
+      markAllAsRead();
+    }, [refresh, markAllAsRead]),
   );
 
-  const fetchRequests = async () => {
-    try {
-      const response = await getFetch("/api/pickups/incoming");
-      if (!response.ok) {
-        setError("Noget gik galt - prøv igen");
-      }
-      const requests = await response.json();
-      setRequests(requests);
-    } catch (error) {
-      setError("Noget gik galt - prøv igen");
-    } finally {
-      setLoading(false);
+  const handleTap = (notification: (typeof notifications)[number]) => {
+    if (!notification.relatedId) return;
+
+    switch (notification.type) {
+      case "PICKUP_REQUEST":
+      case "REQUEST_ACCEPTED":
+      case "REQUEST_DECLINED":
+      case "PICKUP_COMPLETED":
+        router.push({
+          pathname: "/pickup/[id]",
+          params: {
+            id: notification.relatedId.toString(),
+            userId: notification.otherUserId.toString(),
+          },
+        });
+        break;
+      case "NEW_MESSAGE":
+        router.push({
+          pathname: "/chat/[pickupId]",
+          params: { 
+            pickupId: notification.relatedId.toString(), 
+
+        },
+        });
+        break;
     }
   };
 
-  if (loading) return <Text>Indlæser...</Text>;
-
-  if (requests.length === 0) {
+  if (notifications.length === 0) {
     return (
       <View style={styles.empty}>
-        <Ionicons name="file-tray-outline" size={48} color="#aaa" />
-        <Text style={styles.emptyText}>Ingen nye anmodninger</Text>
+        <Mascot mood="happy" size={140} />
+        <Text style={styles.emptyText}>Ingen notifikationer endnu</Text>
       </View>
     );
+  }
+
+  return (
+    <View style={styles.list}>
+      {notifications.map((n) => (
+        <TouchableOpacity
+          key={n.id}
+          style={[
+            styles.notificationCard,
+            !n.isRead && styles.notificationCardUnread,
+          ]}
+          onPress={() => handleTap(n)}
+        >
+          <View style={styles.notificationIcon}>
+            <Ionicons name={getIconForType(n.type)} size={20} color="#3a7d3a" />
+          </View>
+
+          <View style={styles.notificationContent}>
+            <Text style={styles.notificationMessage} numberOfLines={2}>
+              {n.message}
+            </Text>
+            <Text style={styles.notificationTime}>
+              {formatRelativeTime(n.createdAt)}
+            </Text>
+          </View>
+
+          {!n.isRead && <View style={styles.unreadDot} />}
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+}
+
+function getIconForType(type: string): keyof typeof Ionicons.glyphMap {
+  switch (type) {
+    case "PICKUP_REQUEST":
+      return "hand-left-outline";
+    case "REQUEST_ACCEPTED":
+      return "checkmark-circle-outline";
+    case "REQUEST_DECLINED":
+      return "close-circle-outline";
+    case "PICKUP_COMPLETED":
+      return "checkmark-done-outline";
+    case "NEW_MESSAGE":
+      return "chatbubble-outline";
+    default:
+      return "notifications-outline";
   }
 }
 
@@ -253,6 +313,68 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 14,
     color: "#888",
+  },
+  // Notifikations-kort
+  notificationCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 14,
+    gap: 12,
+    borderWidth: 0.5,
+    borderColor: "#e0e0e0",
+  },
+  notificationCardUnread: {
+    backgroundColor: "#f0f7f0",
+    borderColor: "#c8e6c9",
+  },
+  notificationIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#e8f3e8",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  notificationContent: {
+    flex: 1,
+    gap: 4,
+  },
+  notificationMessage: {
+    fontSize: 14,
+    color: "#2c2c2c",
+    lineHeight: 18,
+  },
+  notificationTime: {
+    fontSize: 11,
+    color: "#888",
+  },
+  unreadDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#3a7d3a",
+  },
+
+  // Tab badge
+  tabLabel: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  tabBadge: {
+    backgroundColor: "#e24b4a",
+    borderRadius: 10,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    minWidth: 20,
+    alignItems: "center",
+  },
+  tabBadgeText: {
+    color: "#fff",
+    fontSize: 11,
+    fontWeight: "500",
   },
   /* Message card */
   messageCard: {

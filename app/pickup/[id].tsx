@@ -289,7 +289,9 @@ export default function PickupDetailScreen() {
               }}
             >
               <Ionicons name="chatbubble-outline" size={18} color="#fff" />
-              <Text style={styles.buttonText}>Skriv til {otherUser?.name}</Text>
+              <Text style={styles.buttonText}>
+                Skriv til {isOwner ? request.requesterName : request.ownerName}
+              </Text>
             </TouchableOpacity>
 
             {isAccepted && !myConfirmation && (
