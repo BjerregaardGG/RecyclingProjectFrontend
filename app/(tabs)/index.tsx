@@ -15,7 +15,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { Item } from "@/interfaces/item";
 import { Category } from "@/interfaces/category";
-import { getFetch } from "@/utils/fetchUtils";
+import { getFetch, deleteFetch, postFetch } from "@/utils/fetchUtils";
 import { useRouter } from "expo-router";
 import * as Location from "expo-location";
 import { calculateDistance } from "@/utils/locationUtils";
@@ -135,6 +135,43 @@ export default function HomeScreen() {
     }
   };
 
+  const handleLike = async (item: Item) => {
+    const newLiked = !item.isLikedByCurrentUser;
+    const delta = newLiked ? 1 : -1;
+
+    setItems((prev) =>
+      prev.map((i) =>
+        i.id === item.id
+          ? {
+              ...i,
+              isLikedByCurrentUser: newLiked,
+              likeCount: i.likeCount + delta,
+            }
+          : i,
+      ),
+    );
+
+    try {
+      if (newLiked) {
+        await postFetch(`/api/likes/like/${item.id}`, {});
+      } else {
+        await deleteFetch(`/api/likes/unlike/${item.id}`);
+      }
+    } catch (e) {
+      setItems((prev) =>
+        prev.map((i) =>
+          i.id === item.id
+            ? {
+                ...i,
+                isLikedByCurrentUser: item.isLikedByCurrentUser,
+                likeCount: item.likeCount,
+              }
+            : i,
+        ),
+      );
+    }
+  };
+
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/*Header*/}
@@ -248,6 +285,22 @@ export default function HomeScreen() {
                     uri: item.image,
                   }}
                 />
+                <TouchableOpacity
+                  style={styles.likeButton}
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    handleLike(item);
+                  }}
+                >
+                  <Ionicons
+                    name={item.isLikedByCurrentUser ? "heart" : "heart-outline"}
+                    size={20}
+                    color={item.isLikedByCurrentUser ? "#e24b4a" : "#fff"}
+                  />
+                  {item.likeCount > 0 && (
+                    <Text style={styles.likeCount}>{item.likeCount}</Text>
+                  )}
+                </TouchableOpacity>
                 <View style={styles.cardBody}>
                   <Text style={styles.cardName}>{item.name}</Text>
                   <Text style={styles.cardDescription}>
@@ -448,6 +501,23 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
+  },
+  likeButton: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
+    borderRadius: 16,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  likeCount: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "500",
   },
   dot: {
     width: 8,

@@ -102,10 +102,9 @@ function NotificationsList() {
       case "NEW_MESSAGE":
         router.push({
           pathname: "/chat/[pickupId]",
-          params: { 
-            pickupId: notification.relatedId.toString(), 
-
-        },
+          params: {
+            pickupId: notification.relatedId.toString(),
+          },
         });
         break;
     }
@@ -199,7 +198,7 @@ function Messages() {
   if (conversations.length === 0) {
     return (
       <View style={styles.empty}>
-        <Ionicons name="chatbubble-outline" size={48} color="#aaa" />
+        <Mascot mood="happy" size={140} />
         <Text style={styles.emptyText}>Ingen beskeder endnu</Text>
       </View>
     );

@@ -10,4 +10,6 @@ export interface Item {
   longitude: number;
   status: string;
   reservedAt: string | null;
+  likeCount: number;
+  isLikedByCurrentUser: boolean;
 }

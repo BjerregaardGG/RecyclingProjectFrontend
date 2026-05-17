@@ -45,7 +45,7 @@ export function NotificationProvider({
   const markAllAsRead = useCallback(async () => {
     try {
       await patchFetch("/api/notifications/me/read");
-      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
     } catch (e) {
       console.log(e);
     }
