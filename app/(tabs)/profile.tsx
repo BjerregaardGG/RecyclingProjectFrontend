@@ -19,6 +19,7 @@ import { useRouter } from "expo-router";
 import { SimpleLineIcons } from "@expo/vector-icons";
 import { pickAndUploadImage } from "@/utils/cloudinaryUtils";
 import { Mascot } from "@/components/Mascot";
+import { Ionicons } from "@expo/vector-icons";
 
 const { width } = Dimensions.get("window");
 const cardWidth = (width - 48) / 2;
@@ -225,6 +226,12 @@ export default function ProfileScreen() {
                 }
               >
                 <Image style={styles.cardImage} source={{ uri: item.image }} />
+                {item.likeCount > 0 && (
+                  <View style={styles.likeOverlay}>
+                    <Ionicons name="heart" size={14} color="#727171" />
+                    <Text style={styles.likeOverlayText}>{item.likeCount}</Text>
+                  </View>
+                )}
                 <View style={styles.cardBody}>
                   <Text style={styles.cardName}>{item.name}</Text>
                   <Text
@@ -410,5 +417,22 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     color: "#2c2c2c",
     marginBottom: 2,
+  },
+  likeOverlay: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  likeOverlayText: {
+    fontSize: 12,
+    color: "#2c2c2c",
+    fontWeight: "600",
   },
 });

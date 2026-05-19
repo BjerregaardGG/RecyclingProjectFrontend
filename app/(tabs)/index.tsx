@@ -20,6 +20,7 @@ import { useRouter } from "expo-router";
 import * as Location from "expo-location";
 import { calculateDistance } from "@/utils/locationUtils";
 import { useMemo } from "react";
+import { useNotifications } from "@/contexts/NotificationContexts";
 
 const { width } = Dimensions.get("window");
 const cardWidth = (width - 48) / 2;
@@ -40,6 +41,8 @@ export default function HomeScreen() {
     longitude: number;
   } | null>(null);
   const [locationAccess, setLocationAccess] = useState(false);
+  const { unreadCount } = useNotifications();
+  console.log(unreadCount);
 
   useFocusEffect(
     useCallback(() => {
@@ -180,9 +183,13 @@ export default function HomeScreen() {
           <Ionicons name="menu-outline" size={26} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Snatch</Text>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{initial}</Text>
-        </View>
+        <TouchableOpacity onPress={() => router.navigate("/inbox")}>
+          <Ionicons
+            name={unreadCount > 0 ? "notifications" : "notifications-outline"}
+            size={26}
+            color={unreadCount > 0 ? "#fff" : "#fff"}
+          />
+        </TouchableOpacity>
       </View>
 
       {/*Search field*/}

@@ -223,9 +223,17 @@ export default function PickupDetailScreen() {
           <Text style={styles.sectionTitle}>Bruger</Text>
           <View style={styles.userRow}>
             <View style={styles.avatar}>
-              <Text style={styles.avatarText}>
-                {request.requesterName?.substring(0, 1).toUpperCase()}
-              </Text>
+              {otherUser.image ? (
+                <Image
+                  source={{ uri: otherUser.image }}
+                  style={styles.avatarImage}
+                  resizeMode="cover"
+                />
+              ) : (
+                <Text style={styles.avatarText}>
+                  {otherUser.name?.substring(0, 1).toUpperCase()}
+                </Text>
+              )}
             </View>
             <Text style={styles.userName}>{otherUser?.name}</Text>
           </View>
@@ -425,6 +433,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "500",
     color: "#2e7d32",
+  },
+  avatarImage: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 100,
   },
   userName: {
     fontSize: 14,

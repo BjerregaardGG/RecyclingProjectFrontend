@@ -20,7 +20,14 @@ type Tab = "notifications" | "messages";
 
 export default function InboxScreen() {
   const [activeTab, setActiveTab] = useState<Tab>("notifications");
-  const { unreadCount } = useNotifications();
+  const { notifications } = useNotifications();
+
+  const hasUnreadMessages = notifications.some(
+    (n) => n.type === "NEW_MESSAGE" && !n.isRead,
+  );
+  const hasUnreadNotifications = notifications.some(
+    (n) => n.type !== "NEW_MESSAGE" && !n.isRead,
+  );
 
   return (
     <View style={styles.container}>
@@ -42,6 +49,7 @@ export default function InboxScreen() {
             style={[
               styles.tabText,
               activeTab === "notifications" && styles.tabTextActive,
+              hasUnreadNotifications && styles.tabTextBold,
             ]}
           >
             Notifikationer
@@ -56,6 +64,7 @@ export default function InboxScreen() {
             style={[
               styles.tabText,
               activeTab === "messages" && styles.tabTextActive,
+              hasUnreadMessages && styles.tabTextBold,
             ]}
           >
             Beskeder
@@ -73,8 +82,11 @@ export default function InboxScreen() {
 
 function NotificationsList() {
   const { notifications, refresh, markAllAsRead } = useNotifications();
-  const [error, setError] = useState("");
   const router = useRouter();
+
+  const visibleNotifications = notifications.filter(
+    (n) => n.type !== "NEW_MESSAGE",
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -99,18 +111,10 @@ function NotificationsList() {
           },
         });
         break;
-      case "NEW_MESSAGE":
-        router.push({
-          pathname: "/chat/[pickupId]",
-          params: {
-            pickupId: notification.relatedId.toString(),
-          },
-        });
-        break;
     }
   };
 
-  if (notifications.length === 0) {
+  if (visibleNotifications.length === 0) {
     return (
       <View style={styles.empty}>
         <Mascot mood="happy" size={140} />
@@ -121,7 +125,7 @@ function NotificationsList() {
 
   return (
     <View style={styles.list}>
-      {notifications.map((n) => (
+      {visibleNotifications.map((n) => (
         <TouchableOpacity
           key={n.id}
           style={[
@@ -160,8 +164,6 @@ function getIconForType(type: string): keyof typeof Ionicons.glyphMap {
       return "close-circle-outline";
     case "PICKUP_COMPLETED":
       return "checkmark-done-outline";
-    case "NEW_MESSAGE":
-      return "chatbubble-outline";
     default:
       return "notifications-outline";
   }
@@ -184,6 +186,7 @@ function Messages() {
       const response = await getFetch("/api/messages/conversations/me");
       if (!response.ok) {
         setError("Noget gik galt - prøv igen");
+        return;
       }
       const conversations = await response.json();
       console.log(conversations);
@@ -224,10 +227,19 @@ function Messages() {
             })
           }
         >
-          <Image
-            source={{ uri: con.otherUserImage }}
-            style={styles.messageImage}
-          />
+          <View style={styles.avatar}>
+            {con.otherUserImage ? (
+              <Image
+                source={{ uri: con.otherUserImage }}
+                style={styles.avatarImage}
+                resizeMode="cover"
+              />
+            ) : (
+              <Text style={styles.avatarText}>
+                {con.itemName?.substring(0, 1).toUpperCase()}
+              </Text>
+            )}
+          </View>
           <View style={styles.messageInfo}>
             <Text style={styles.messageName}>{con.otherUserName}</Text>
             <Text
@@ -271,6 +283,10 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     color: "#fff",
     letterSpacing: 2,
+  },
+  tabTextBold: {
+    fontWeight: "700",
+    color: "#031303",
   },
   tabBar: {
     flexDirection: "row",
@@ -424,5 +440,23 @@ const styles = StyleSheet.create({
   messagePreviewUnread: {
     color: "#2c2c2c",
     fontWeight: "500",
+  },
+  avatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 100,
+    backgroundColor: "#c8e6c9",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  avatarImage: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 100,
+  },
+  avatarText: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#2e7d32",
   },
 });

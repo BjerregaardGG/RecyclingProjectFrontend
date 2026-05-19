@@ -282,9 +282,17 @@ export default function ItemScreen() {
           <Text style={styles.sectionTitle}>Udbydes af</Text>
           <View style={styles.userRow}>
             <View style={styles.avatar}>
-              <Text style={styles.avatarText}>
-                {userData?.name?.substring(0, 1).toUpperCase()}
-              </Text>
+              {userData.image ? (
+                <Image
+                  source={{ uri: userData.image }}
+                  style={styles.avatarImage}
+                  resizeMode="cover"
+                />
+              ) : (
+                <Text style={styles.avatarText}>
+                  {userData?.name?.substring(0, 1).toUpperCase()}
+                </Text>
+              )}
             </View>
             <Text style={styles.userName}>{userData?.name}</Text>
           </View>
@@ -458,6 +466,11 @@ const styles = StyleSheet.create({
     fontSize: 13,
     textAlign: "center",
     marginBottom: 12,
+  },
+  avatarImage: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 100,
   },
   success: {
     color: "#3a7d3a",
