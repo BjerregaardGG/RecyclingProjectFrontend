@@ -270,12 +270,14 @@ export default function ItemScreen() {
 
       <TouchableOpacity
         onPress={() => {
-          router.push({
-            pathname: "/user/[id]",
-            params: {
-              id: userData.id,
-            },
-          });
+          if (userData.id === item.userId) {
+            router.push("/(tabs)/profile");
+          } else {
+            router.push({
+              pathname: "/user/[id]",
+              params: { id: item.userId.toString() },
+            });
+          }
         }}
       >
         <View style={styles.section}>

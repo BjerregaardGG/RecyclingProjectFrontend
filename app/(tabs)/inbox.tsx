@@ -111,6 +111,15 @@ function NotificationsList() {
           },
         });
         break;
+      case "NEW_REVIEW":
+        router.push({
+          pathname: "/review/[id]",
+          params: {
+            id: notification.relatedId.toString(),
+            pickupId: notification.relatedId.toString(),
+          },
+        });
+        break;
     }
   };
 
@@ -164,6 +173,10 @@ function getIconForType(type: string): keyof typeof Ionicons.glyphMap {
       return "close-circle-outline";
     case "PICKUP_COMPLETED":
       return "checkmark-done-outline";
+    case "NEW_REVIEW":
+      return "star-outline";
+    case "INCOMING_REVIEW":
+      return "star";
     default:
       return "notifications-outline";
   }

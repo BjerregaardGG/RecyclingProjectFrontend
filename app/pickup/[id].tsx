@@ -15,6 +15,7 @@ import { PickupRequest } from "@/interfaces/pickupRequest";
 import { User } from "@/interfaces/user";
 import { useCallback } from "react";
 import { getTimeRemaining, useCountdown, isExpired } from "@/utils/dateUtils";
+import { Mascot } from "@/components/Mascot";
 
 export default function PickupDetailScreen() {
   const { id, userId } = useLocalSearchParams();
@@ -316,13 +317,17 @@ export default function PickupDetailScreen() {
                 </Text>
               </View>
             )}
+          </>
+        )}
 
-            {request.status === "COMPLETED" && (
-              <View style={styles.completedBox}>
-                <Ionicons name="checkmark-circle" size={20} color="#3a7d3a" />
-                <Text style={styles.completedText}>Afhentet ✓</Text>
-              </View>
-            )}
+        {isCompleted && (
+          <>
+            <View style={styles.completedState}>
+              <Mascot mood="excited" size={160} />
+              <Text style={styles.completedStateText}>
+                Denne snatch er i hus!
+              </Text>
+            </View>
           </>
         )}
       </View>
@@ -526,5 +531,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#3a7d3a",
     fontWeight: "600",
+  },
+  completedState: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 60,
+    paddingHorizontal: 32,
+    gap: 16,
+  },
+  completedStateText: {
+    fontSize: 14,
+    color: "#888",
+    textAlign: "center",
+    lineHeight: 20,
   },
 });

@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { Item } from "@/interfaces/item";
 import { getFetch, patchFetch } from "@/utils/fetchUtils";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useEffect } from "react";
 import { useFocusEffect } from "expo-router";
 import { User } from "@/interfaces/user";
 import { useRouter } from "expo-router";
@@ -20,6 +20,7 @@ import { SimpleLineIcons } from "@expo/vector-icons";
 import { pickAndUploadImage } from "@/utils/cloudinaryUtils";
 import { Mascot } from "@/components/Mascot";
 import { Ionicons } from "@expo/vector-icons";
+import { StarRating } from "@/components/StarRating";
 
 const { width } = Dimensions.get("window");
 const cardWidth = (width - 48) / 2;
@@ -45,6 +46,8 @@ export default function ProfileScreen() {
   const router = useRouter();
   const [filter, setFilter] = useState<FilterValue>("AVAILABLE");
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [average, setAverage] = useState(0);
+  const [reviewCount, setReviewCount] = useState(0);
 
   const currentLabel = FILTER_OPTIONS.find((o) => o.value === filter)?.label;
 
@@ -76,9 +79,14 @@ export default function ProfileScreen() {
   };
 
   const fetchUserData = async () => {
-    const response = await getFetch("/api/users/me");
-    const data = await response.json();
-    setUserData(data);
+    try {
+      const response = await getFetch("/api/users/me");
+      const data = await response.json();
+      setUserData(data);
+      fetchRating(data.id);
+    } catch (e) {
+      setError("Noget gik galt – prøv igen");
+    }
   };
 
   const fetchItems = async () => {
@@ -91,6 +99,18 @@ export default function ProfileScreen() {
       setError("Noget gik galt – prøv igen");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchRating = async (userId: number) => {
+    try {
+      const response = await getFetch(`/api/reviews/user/${userId}/average`);
+      if (!response.ok) return;
+      const data = await response.json();
+      setAverage(data.averageRating);
+      setReviewCount(data.totalReviews);
+    } catch (e) {
+      setError("Noget gik galt - prøv igen");
     }
   };
 
@@ -120,30 +140,29 @@ export default function ProfileScreen() {
         <Text style={styles.headerTitle}>{userData?.name}</Text>
       </View>
 
-      {/* Profil sektion */}
-      <View style={styles.profileSection}>
-        {userData?.image ? (
-          <Image
-            source={{ uri: userData.image }}
-            style={styles.profileImage}
-            resizeMode="cover"
-          />
-        ) : (
-          <View style={styles.profileAvatar}>
-            <Text style={styles.profileAvatarText}>
-              {userData?.name?.substring(0, 1).toUpperCase()}
-            </Text>
-          </View>
-        )}
-      </View>
-
-      {/* Image upload */}
-      <TouchableOpacity
-        onPress={handlePickImage}
-        style={styles.changeImageButton}
-      >
-        <Text style={styles.changeImageText}>Skift profilbillede</Text>
+      {/* Profile section */}
+      <TouchableOpacity onPress={handlePickImage}>
+        <View style={styles.profileSection}>
+          {userData?.image ? (
+            <Image
+              source={{ uri: userData.image }}
+              style={styles.profileImage}
+              resizeMode="cover"
+            />
+          ) : (
+            <View style={styles.profileAvatar}>
+              <Text style={styles.profileAvatarText}>
+                {userData?.name?.substring(0, 1).toUpperCase()}
+              </Text>
+            </View>
+          )}
+        </View>
       </TouchableOpacity>
+
+      <View style={styles.ratings}>
+        <StarRating rating={average} />
+        <Text style={styles.ratingsText}>({reviewCount})</Text>
+      </View>
 
       {/* Dropdown modal */}
       <Modal
@@ -290,7 +309,6 @@ const styles = StyleSheet.create({
   profileSection: {
     alignItems: "center",
     paddingTop: 24,
-    paddingBottom: 12,
   },
   changeImageButton: {
     backgroundColor: "#fff",
@@ -306,6 +324,18 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#3a7d3a",
     fontWeight: "500",
+  },
+  ratings: {
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    marginTop: 8,
+    marginRight: 8,
+    alignSelf: "center",
+  },
+  ratingsText: {
+    marginTop: 4,
+    color: "#3a7d3a",
+    alignSelf: "center",
   },
   profileImage: {
     width: 120,

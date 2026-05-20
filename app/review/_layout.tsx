@@ -1,5 +1,5 @@
 import { Stack } from "expo-router";
 
-export default function PickupLayout() {
+export default function ReviewLayout() {
   return <Stack screenOptions={{ headerShown: false }}></Stack>;
 }

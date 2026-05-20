@@ -11,6 +11,7 @@ export default function RootLayout() {
         <Stack.Screen name="pickup" options={{ headerShown: false }} />
         <Stack.Screen name="chat" options={{ headerShown: false }} />
         <Stack.Screen name="user" options={{ headerShown: false }} />
+        <Stack.Screen name="review" options={{ headerShown: false }} />
       </Stack>
       <StatusBar style="auto" />
     </>

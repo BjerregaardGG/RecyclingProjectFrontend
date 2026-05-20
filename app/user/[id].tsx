@@ -17,6 +17,7 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
 import { Mascot } from "@/components/Mascot";
+import { StarRating } from "@/components/StarRating";
 
 const { width } = Dimensions.get("window");
 const cardWidth = (width - 48) / 2;
@@ -28,6 +29,8 @@ export default function UserScreen() {
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const [average, setAverage] = useState(0);
+  const [reviewCount, setReviewCount] = useState(0);
 
   useFocusEffect(
     useCallback(() => {
@@ -44,6 +47,7 @@ export default function UserScreen() {
       }
       const data = await response.json();
       setUserData(data);
+      fetchRating(data.id);
     } catch (e) {
       setError("Noget gik galt - prøv igen");
     } finally {
@@ -61,6 +65,18 @@ export default function UserScreen() {
       setError("Noget gik galt – prøv igen");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchRating = async (userId: number) => {
+    try {
+      const response = await getFetch(`/api/reviews/user/${userId}/average`);
+      if (!response.ok) return;
+      const data = await response.json();
+      setAverage(data.averageRating);
+      setReviewCount(data.totalReviews);
+    } catch (e) {
+      setError("Noget gik galt - prøv igen");
     }
   };
 
@@ -90,6 +106,11 @@ export default function UserScreen() {
             </Text>
           </View>
         )}
+      </View>
+
+      <View style={styles.ratings}>
+        <StarRating rating={average} />
+        <Text style={styles.ratingsText}>({reviewCount})</Text>
       </View>
 
       <View style={styles.content}>
@@ -179,22 +200,6 @@ const styles = StyleSheet.create({
   profileSection: {
     alignItems: "center",
     paddingTop: 24,
-    paddingBottom: 12,
-  },
-  changeImageButton: {
-    backgroundColor: "#fff",
-    borderWidth: 1.5,
-    borderColor: "#3a7d3a",
-    borderRadius: 20,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    marginRight: 8,
-    alignSelf: "center",
-  },
-  changeImageText: {
-    fontSize: 12,
-    color: "#3a7d3a",
-    fontWeight: "500",
   },
   profileImage: {
     width: 120,
@@ -222,6 +227,18 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "500",
     color: "#2c2c2c",
+  },
+  ratings: {
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    marginTop: 8,
+    marginRight: 8,
+    alignSelf: "center",
+  },
+  ratingsText: {
+    marginTop: 4,
+    color: "#3a7d3a",
+    alignSelf: "center",
   },
   content: {
     padding: 16,
