@@ -71,7 +71,7 @@ export default function PickupDetailScreen() {
 
   const handleAccept = async () => {
     try {
-      const response = await patchFetch(`/api/pickups/${id}/accept`);
+      const response = await patchFetch(`/api/pickups/${id}/accept`, {});
       if (!response.ok) return;
       const updated = await response.json();
       setRequest(updated);
@@ -91,7 +91,10 @@ export default function PickupDetailScreen() {
           style: "destructive",
           onPress: async () => {
             try {
-              const response = await patchFetch(`/api/pickups/${id}/decline`);
+              const response = await patchFetch(
+                `/api/pickups/${id}/decline`,
+                {},
+              );
               if (!response.ok) return;
               router.back();
             } catch (error) {
@@ -106,7 +109,7 @@ export default function PickupDetailScreen() {
   const handleConfirm = async () => {
     try {
       console.log(id);
-      const response = await patchFetch(`/api/pickups/${id}/confirm`);
+      const response = await patchFetch(`/api/pickups/${id}/confirm`, {});
       if (!response.ok) {
         setError("Noget gik galt - prøv igen");
         router.back();

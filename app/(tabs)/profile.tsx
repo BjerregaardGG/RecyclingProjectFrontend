@@ -21,6 +21,7 @@ import { pickAndUploadImage } from "@/utils/cloudinaryUtils";
 import { Mascot } from "@/components/Mascot";
 import { Ionicons } from "@expo/vector-icons";
 import { StarRating } from "@/components/StarRating";
+import { handleLogout } from "@/utils/authUtils";
 
 const { width } = Dimensions.get("window");
 const cardWidth = (width - 48) / 2;
@@ -42,6 +43,7 @@ export default function ProfileScreen() {
   const [userData, setUserData] = useState<User | null>(null);
   const [error, setError] = useState("");
   const [items, setItems] = useState<Item[]>([]);
+  const [likedItems, setLikedItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const [filter, setFilter] = useState<FilterValue>("AVAILABLE");
@@ -55,12 +57,20 @@ export default function ProfileScreen() {
     useCallback(() => {
       fetchItems();
       fetchUserData();
+      fetchLikedItems();
     }, []),
   );
 
   const filteredItems = useMemo(() => {
-    let result =
-      filter === "all" ? items : items.filter((item) => item.status === filter);
+    let result;
+    if (filter === "liked") {
+      result = likedItems;
+    } else {
+      result =
+        filter === "all"
+          ? items
+          : items.filter((item) => item.status === filter);
+    }
 
     return [...result].sort((a, b) => {
       if (!a.reservedAt) return 1;
@@ -114,11 +124,26 @@ export default function ProfileScreen() {
     }
   };
 
+  const fetchLikedItems = async () => {
+    try {
+      const response = await getFetch("/api/likes/me");
+      if (!response.ok) {
+        return;
+      }
+
+      const data = await response.json();
+      setLikedItems(data);
+    } catch (error) {
+      setError("Noget gik galt - prøv igen");
+    }
+  };
+
   const uploadPicture = async (url: string) => {
     try {
       console.log(url);
       const response = await patchFetch(
         `/api/users/me/image?image=${encodeURIComponent(url)}`,
+        {},
       );
 
       if (!response.ok) {
@@ -133,35 +158,121 @@ export default function ProfileScreen() {
     }
   };
 
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>{userData?.name}</Text>
+        <View style={styles.headerSpacer} />
+        <Text style={styles.headerTitle}>Profil</Text>
+        <TouchableOpacity onPress={() => setMenuOpen(true)}>
+          <Ionicons name="ellipsis-vertical" size={22} color="#fff" />
+        </TouchableOpacity>
       </View>
 
-      {/* Profile section */}
-      <TouchableOpacity onPress={handlePickImage}>
-        <View style={styles.profileSection}>
+      {/* Menu modal */}
+      <Modal
+        visible={menuOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setMenuOpen(false)}
+      >
+        <Pressable
+          style={styles.menuBackdrop}
+          onPress={() => setMenuOpen(false)}
+        >
+          <View style={styles.menu}>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => {
+                setMenuOpen(false);
+                router.push("/profile/edit");
+              }}
+            >
+              <Ionicons name="create-outline" size={18} color="#2c2c2c" />
+              <Text style={styles.menuItemText}>Rediger profil</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => {
+                setMenuOpen(false);
+                setFilter("liked");
+              }}
+            >
+              <Ionicons name="heart" size={18} color="#2c2c2c" />
+              <Text style={styles.menuItemText}>Likede opslag</Text>
+            </TouchableOpacity>
+
+            <View style={styles.menuDivider} />
+
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => {
+                setMenuOpen(false);
+                handleLogout(router);
+              }}
+            >
+              <Ionicons name="log-out-outline" size={18} color="#e24b4a" />
+              <Text style={[styles.menuItemText, { color: "#e24b4a" }]}>
+                Log ud
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </Pressable>
+      </Modal>
+
+      <View style={styles.profileCard}>
+        {/* profile picture */}
+        <TouchableOpacity
+          onPress={handlePickImage}
+          style={styles.profileImageWrapper}
+        >
           {userData?.image ? (
             <Image
               source={{ uri: userData.image }}
-              style={styles.profileImage}
+              style={styles.profileImageSide}
               resizeMode="cover"
             />
           ) : (
-            <View style={styles.profileAvatar}>
-              <Text style={styles.profileAvatarText}>
+            <View style={styles.profileAvatarSide}>
+              <Text style={styles.profileAvatarTextSide}>
                 {userData?.name?.substring(0, 1).toUpperCase()}
               </Text>
             </View>
           )}
-        </View>
-      </TouchableOpacity>
+        </TouchableOpacity>
 
-      <View style={styles.ratings}>
-        <StarRating rating={average} />
-        <Text style={styles.ratingsText}>({reviewCount})</Text>
+        {/* Info */}
+        <View style={styles.profileInfo}>
+          <View style={styles.profileNameRow}>
+            <Text style={styles.profileName}>{userData?.name}</Text>
+            {reviewCount > 0 && (
+              <View style={styles.verifiedBadge}>
+                <Ionicons name="star" size={10} color="#fff" />
+              </View>
+            )}
+          </View>
+
+          <View style={styles.profileRatingRow}>
+            <StarRating rating={average} size={13} />
+            <Text style={styles.profileMetaText}>({reviewCount})</Text>
+          </View>
+
+          {userData?.city && (
+            <View style={styles.profileLocationRow}>
+              <Ionicons name="location-outline" size={12} color="#888" />
+              <Text style={styles.profileLocationText}>{userData.city}</Text>
+            </View>
+          )}
+
+          {userData?.profileText && (
+            <Text style={styles.profileBio} numberOfLines={3}>
+              {userData.profileText}
+            </Text>
+          )}
+        </View>
       </View>
 
       {/* Dropdown modal */}
@@ -205,7 +316,11 @@ export default function ProfileScreen() {
       <View style={styles.content}>
         {/* Items */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionLabel}>Dine opslag ({currentLabel})</Text>
+          <Text style={styles.sectionLabel}>
+            {filter === "liked"
+              ? "Likede opslag"
+              : `Dine opslag (${currentLabel})`}
+          </Text>
           <TouchableOpacity onPress={() => setDropdownOpen(true)}>
             <SimpleLineIcons
               style={styles.sectionOptions}
@@ -293,76 +408,145 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
   },
-  header: {
-    backgroundColor: "#3a7d3a",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingTop: 52,
-    paddingBottom: 12,
-  },
   headerTitle: {
     fontSize: 16,
     fontWeight: "500",
     color: "#fff",
     letterSpacing: 2,
+    justifyContent: "center",
   },
-  profileSection: {
+  header: {
+    backgroundColor: "#3a7d3a",
+    flexDirection: "row",
     alignItems: "center",
-    paddingTop: 24,
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingTop: 58,
+    paddingBottom: 12,
   },
-  changeImageButton: {
+  headerSpacer: {
+    width: 22,
+  },
+  menuBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.2)",
+    alignItems: "flex-end",
+    paddingTop: 88,
+    paddingRight: 16,
+  },
+  menu: {
     backgroundColor: "#fff",
-    borderWidth: 1.5,
-    borderColor: "#3a7d3a",
-    borderRadius: 20,
-    paddingHorizontal: 14,
+    borderRadius: 12,
     paddingVertical: 6,
-    marginRight: 8,
-    alignSelf: "center",
+    minWidth: 180,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  changeImageText: {
-    fontSize: 12,
-    color: "#3a7d3a",
+  menuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  menuItemText: {
+    fontSize: 14,
+    color: "#2c2c2c",
     fontWeight: "500",
   },
-  ratings: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    marginTop: 8,
-    marginRight: 8,
-    alignSelf: "center",
+  menuDivider: {
+    height: 0.5,
+    backgroundColor: "#e0e0e0",
+    marginVertical: 4,
   },
-  ratingsText: {
-    marginTop: 4,
-    color: "#3a7d3a",
-    alignSelf: "center",
+  profileCard: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 16,
+    marginHorizontal: 16,
+    marginTop: 20,
+    marginBottom: 8,
+    padding: 14,
   },
-  profileImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    borderWidth: 3,
-    borderColor: "#fff",
+  profileImageWrapper: {
+    width: 110,
+    height: 110,
+    borderRadius: 55,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    elevation: 4,
   },
-  profileAvatar: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+  profileImageSide: {
+    width: "100%",
+    height: "100%",
+  },
+  profileAvatarSide: {
+    width: "100%",
+    height: "100%",
     backgroundColor: "#c8e6c9",
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 3,
-    borderColor: "#fff",
   },
-  profileAvatarText: {
+  profileAvatarTextSide: {
     fontSize: 42,
     fontWeight: "500",
     color: "#2e7d32",
   },
+  profileInfo: {
+    flex: 1,
+    gap: 6,
+    paddingTop: 4,
+  },
+  profileNameRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
   profileName: {
-    fontSize: 20,
+    fontSize: 17,
+    fontWeight: "700",
+    color: "#1f1f1f",
+    letterSpacing: -0.3,
+  },
+  verifiedBadge: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: "#3a7d3a",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  profileRatingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+  },
+  profileMetaText: {
+    fontSize: 11,
+    color: "#888",
     fontWeight: "500",
-    color: "#2c2c2c",
+  },
+  profileLocationRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    marginTop: 2,
+  },
+  profileLocationText: {
+    fontSize: 12,
+    color: "#888",
+  },
+  profileBio: {
+    fontSize: 12,
+    color: "#555",
+    lineHeight: 16,
+    marginTop: 4,
   },
   content: {
     padding: 16,

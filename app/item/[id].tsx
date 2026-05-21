@@ -270,7 +270,7 @@ export default function ItemScreen() {
 
       <TouchableOpacity
         onPress={() => {
-          if (userData.id === item.userId) {
+          if (loggedInUserData.id === item.userId) {
             router.push("/(tabs)/profile");
           } else {
             router.push({

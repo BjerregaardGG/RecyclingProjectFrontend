@@ -171,7 +171,9 @@ export default function GiveScreen() {
             </TouchableOpacity>
 
             {/* Navn */}
-            <Text style={styles.label}>Titel</Text>
+            <Text style={styles.label}>
+              Titel <Text style={styles.required}>*</Text>
+            </Text>
             <TextInput
               style={styles.input}
               placeholder="Hvad vil du give væk?"
@@ -181,7 +183,9 @@ export default function GiveScreen() {
             />
 
             {/* Second Title */}
-            <Text style={styles.label}>Undertitel</Text>
+            <Text style={styles.label}>
+              Undertitel <Text style={styles.required}>*</Text>
+            </Text>
             <TextInput
               style={styles.input}
               placeholder="Giv din genstand en undertitel"
@@ -191,7 +195,9 @@ export default function GiveScreen() {
             />
 
             {/* Description */}
-            <Text style={styles.label}>Beskrivelse</Text>
+            <Text style={styles.label}>
+              Beskrivelse <Text style={styles.required}>*</Text>
+            </Text>
             <TextInput
               style={[styles.input, styles.textArea]}
               placeholder="Beskrivelse"
@@ -203,7 +209,9 @@ export default function GiveScreen() {
             />
 
             {/* Address */}
-            <Text style={styles.label}>Afhentningssted</Text>
+            <Text style={styles.label}>
+              Afhentningssted <Text style={styles.required}>*</Text>
+            </Text>
             <TextInput
               style={styles.input}
               placeholder="Begynd at skrive adressen..."
@@ -230,7 +238,9 @@ export default function GiveScreen() {
             )}
 
             {/* Category */}
-            <Text style={styles.label}>Kategori</Text>
+            <Text style={styles.label}>
+              Kategori <Text style={styles.required}>*</Text>
+            </Text>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -301,12 +311,12 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: "#3a7d3a",
-    paddingTop: 52,
+    paddingTop: 64,
     paddingBottom: 16,
     paddingHorizontal: 16,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "500",
     color: "#fff",
     textAlign: "center",
@@ -425,5 +435,8 @@ const styles = StyleSheet.create({
   dropdownText: {
     fontSize: 13,
     color: "#2c2c2c",
+  },
+  required: {
+    color: "#e24b4a",
   },
 });

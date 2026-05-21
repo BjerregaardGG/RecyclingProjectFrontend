@@ -60,7 +60,6 @@ export default function UserScreen() {
       const response = await getFetch(`/api/items/user/${id}`);
       const data = await response.json();
       setItems(data);
-      console.log(data);
     } catch (error) {
       setError("Noget gik galt – prøv igen");
     } finally {
@@ -82,35 +81,62 @@ export default function UserScreen() {
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-        <Ionicons name="arrow-back-outline" size={24} color="#fff" />
-      </TouchableOpacity>
-
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>{userData?.name}</Text>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.backButton}
+        >
+          <Ionicons name="arrow-back-outline" size={24} color="#fff" />
+        </TouchableOpacity>
+        <View style={styles.headerSpacer} />
       </View>
 
-      {/* Profil sektion */}
-      <View style={styles.profileSection}>
+      <View style={styles.profileCard}>
+        {/* Billede */}
         {userData?.image ? (
           <Image
             source={{ uri: userData.image }}
-            style={styles.profileImage}
+            style={styles.profileImageSide}
             resizeMode="cover"
           />
         ) : (
-          <View style={styles.profileAvatar}>
-            <Text style={styles.profileAvatarText}>
+          <View style={styles.profileAvatarSide}>
+            <Text style={styles.profileAvatarTextSide}>
               {userData?.name?.substring(0, 1).toUpperCase()}
             </Text>
           </View>
         )}
-      </View>
 
-      <View style={styles.ratings}>
-        <StarRating rating={average} />
-        <Text style={styles.ratingsText}>({reviewCount})</Text>
+        {/* Info */}
+        <View style={styles.profileInfo}>
+          <View style={styles.profileNameRow}>
+            <Text style={styles.profileName}>{userData?.name}</Text>
+            {reviewCount > 0 && (
+              <View style={styles.verifiedBadge}>
+                <Ionicons name="star" size={10} color="#fff" />
+              </View>
+            )}
+          </View>
+
+          <View style={styles.profileRatingRow}>
+            <StarRating rating={average} size={13} />
+            <Text style={styles.profileMetaText}>({reviewCount})</Text>
+          </View>
+
+          {userData?.city && (
+            <View style={styles.profileLocationRow}>
+              <Ionicons name="location-outline" size={12} color="#888" />
+              <Text style={styles.profileLocationText}>{userData.city}</Text>
+            </View>
+          )}
+
+          {userData?.profileText && (
+            <Text style={styles.profileBio} numberOfLines={3}>
+              {userData.profileText}
+            </Text>
+          )}
+        </View>
       </View>
 
       <View style={styles.content}>
@@ -142,7 +168,6 @@ export default function UserScreen() {
                 <Image style={styles.cardImage} source={{ uri: item.image }} />
                 <View style={styles.cardBody}>
                   <Text style={styles.cardName}>{item.name}</Text>
-                  <Text style={styles.cardDescription}></Text>
                 </View>
               </TouchableOpacity>
             ))}
@@ -154,6 +179,32 @@ export default function UserScreen() {
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#f2f5f0",
+  },
+  header: {
+    backgroundColor: "#3a7d3a",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingTop: 52,
+    paddingBottom: 12,
+  },
+  backButton: {
+    width: 24,
+    alignItems: "center",
+  },
+  headerTitle: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: "#fff",
+    letterSpacing: 2,
+  },
+  headerSpacer: {
+    width: 24,
+  },
   emptyState: {
     alignItems: "center",
     justifyContent: "center",
@@ -167,114 +218,85 @@ const styles = StyleSheet.create({
     textAlign: "center",
     lineHeight: 20,
   },
-  backButton: {
-    position: "absolute",
-    top: 52,
-    left: 16,
-    zIndex: 10,
-    backgroundColor: "rgba(0,0,0,0.3)",
-    borderRadius: 20,
-    padding: 6,
+  profileCard: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 16,
+    marginHorizontal: 16,
+    marginTop: 20,
+    marginBottom: 8,
+    padding: 14,
   },
-  container: {
-    flex: 1,
-    backgroundColor: "#f2f5f0",
+  profileImageSide: {
+    width: 110,
+    height: 110,
+    borderRadius: 55,
   },
-  image: {
-    width: "100%",
-    height: "100%",
-  },
-  header: {
-    backgroundColor: "#3a7d3a",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingTop: 52,
-    paddingBottom: 30,
-  },
-  headerTitle: {
-    fontSize: 16,
-    fontWeight: "500",
-    color: "#fff",
-    letterSpacing: 2,
-  },
-  profileSection: {
-    alignItems: "center",
-    paddingTop: 24,
-  },
-  profileImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    borderWidth: 3,
-    borderColor: "#fff",
-  },
-  profileAvatar: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+  profileAvatarSide: {
+    width: 110,
+    height: 110,
+    borderRadius: 55,
     backgroundColor: "#c8e6c9",
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 3,
-    borderColor: "#fff",
   },
-  profileAvatarText: {
+  profileAvatarTextSide: {
     fontSize: 42,
     fontWeight: "500",
     color: "#2e7d32",
   },
+  profileInfo: {
+    flex: 1,
+    gap: 6,
+    paddingTop: 4,
+  },
+  profileNameRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
   profileName: {
-    fontSize: 20,
+    fontSize: 17,
+    fontWeight: "700",
+    color: "#1f1f1f",
+    letterSpacing: -0.3,
+  },
+  verifiedBadge: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: "#3a7d3a",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  profileRatingRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+  },
+  profileMetaText: {
+    fontSize: 11,
+    color: "#888",
     fontWeight: "500",
-    color: "#2c2c2c",
   },
-  ratings: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    marginTop: 8,
-    marginRight: 8,
-    alignSelf: "center",
+  profileLocationRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    marginTop: 2,
   },
-  ratingsText: {
+  profileLocationText: {
+    fontSize: 12,
+    color: "#888",
+  },
+  profileBio: {
+    fontSize: 12,
+    color: "#555",
+    lineHeight: 16,
     marginTop: 4,
-    color: "#3a7d3a",
-    alignSelf: "center",
   },
   content: {
     padding: 16,
-  },
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.2)",
-    alignItems: "flex-end",
-    paddingTop: 318,
-    paddingRight: 16,
-  },
-  dropdown: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    paddingVertical: 10,
-    minWidth: 120,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  dropdownItem: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  dropdownItemActive: {
-    backgroundColor: "#f0f7f0",
-  },
-  dropdownItemText: {
-    fontSize: 14,
-    color: "#2c2c2c",
-  },
-  dropdownItemTextActive: {
-    color: "#3a7d3a",
-    fontWeight: "500",
   },
   sectionHeader: {
     flexDirection: "row",
@@ -288,9 +310,6 @@ const styles = StyleSheet.create({
     color: "#3a7d3a",
     marginBottom: 10,
     marginLeft: 4,
-  },
-  sectionOptions: {
-    marginRight: 8,
   },
   grid: {
     flexDirection: "row",
@@ -317,11 +336,5 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     color: "#2c2c2c",
     marginBottom: 4,
-  },
-  cardDescription: {
-    fontSize: 9,
-    fontWeight: "500",
-    color: "#2c2c2c",
-    marginBottom: 2,
   },
 });

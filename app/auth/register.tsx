@@ -79,7 +79,7 @@ export default function registerScreen() {
         <Text style={styles.backText}>← Tilbage</Text>
       </TouchableOpacity>
 
-      <Text style={styles.title}>Wastey</Text>
+      <Text style={styles.title}>Snatch</Text>
       <Text style={styles.subtitle}>Registrer en konto</Text>
 
       <TouchableOpacity onPress={() => router.push("/auth/login")}>

@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#3a7d3a",
     alignItems: "center",
     paddingHorizontal: 16,
-    paddingTop: 52,
+    paddingTop: 64,
     paddingBottom: 12,
   },
   headerTitle: {

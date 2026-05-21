@@ -27,7 +27,10 @@ export async function postFetch(endpoint: string, body: {}): Promise<Response> {
   });
 }
 
-export async function patchFetch(endpoint: string): Promise<Response> {
+export async function patchFetch(
+  endpoint: string,
+  body: {},
+): Promise<Response> {
   const token = await AsyncStorage.getItem("token");
 
   return await fetch(`${process.env.EXPO_PUBLIC_API_URL}${endpoint}`, {
@@ -37,6 +40,7 @@ export async function patchFetch(endpoint: string): Promise<Response> {
       Authorization: `Bearer ${token}`,
       "ngrok-skip-browser-warning": "true",
     },
+    body: JSON.stringify(body),
   });
 }
 

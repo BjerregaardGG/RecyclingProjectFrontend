@@ -103,7 +103,7 @@ function ReceivedList() {
 
   const handleAccept = async (id: number) => {
     try {
-      const response = await patchFetch(`/api/pickups/${id}/accept`);
+      const response = await patchFetch(`/api/pickups/${id}/accept`, {});
       if (!response.ok) return;
       setRequests((prev) =>
         prev.map((req) =>
@@ -126,7 +126,10 @@ function ReceivedList() {
           style: "destructive",
           onPress: async () => {
             try {
-              const response = await patchFetch(`/api/pickups/${id}/decline`);
+              const response = await patchFetch(
+                `/api/pickups/${id}/decline`,
+                {},
+              );
               if (!response.ok) return;
               router.back();
             } catch (error) {
@@ -390,7 +393,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#3a7d3a",
     alignItems: "center",
     paddingHorizontal: 16,
-    paddingTop: 52,
+    paddingTop: 64,
     paddingBottom: 12,
   },
   headerTitle: {

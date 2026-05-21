@@ -47,7 +47,7 @@ export default function LoginScreen() {
       <View style={styles.happyState}>
         <Mascot mood="happy" size={160} />
       </View>
-      <Text style={styles.title}>Wastey</Text>
+      <Text style={styles.title}>Snatch</Text>
       <Text style={styles.subtitle}>Log ind på din konto</Text>
 
       {error ? <Text style={styles.error}>{error}</Text> : null}

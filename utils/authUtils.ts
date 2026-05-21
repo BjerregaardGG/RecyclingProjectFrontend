@@ -1,3 +1,7 @@
+import { Alert } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Router } from "expo-router";
+
 export function verifyfirstAndSecondPassword(
   firstPassword: string,
   secondPassword: string,
@@ -51,3 +55,17 @@ export function verifyEmail(
   }
   return true;
 }
+
+export const handleLogout = (router: Router) => {
+  Alert.alert("Log ud?", "Er du sikker på, at du vil logge ud?", [
+    { text: "Annuller", style: "cancel" },
+    {
+      text: "Log ud",
+      style: "destructive",
+      onPress: async () => {
+        await AsyncStorage.removeItem("token");
+        router.replace("/auth/login");
+      },
+    },
+  ]);
+};
