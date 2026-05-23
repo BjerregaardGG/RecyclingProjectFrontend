@@ -9,7 +9,7 @@ export async function pickAndUploadImage(): Promise<string | null> {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
       alert(
-        "Du skal give Wastey adgang til dit fotobiblotek for at kunne uploade billeder",
+        "Du skal give Snatch adgang til dit fotobiblotek for at kunne uploade billeder",
       );
       return null;
     }

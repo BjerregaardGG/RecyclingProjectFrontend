@@ -18,9 +18,10 @@ import { Category } from "@/interfaces/category";
 import { getFetch, deleteFetch, postFetch } from "@/utils/fetchUtils";
 import { useRouter } from "expo-router";
 import * as Location from "expo-location";
-import { calculateDistance } from "@/utils/locationUtils";
+import { calculateDistance, getDistanceInKm } from "@/utils/locationUtils";
 import { useMemo } from "react";
 import { useNotifications } from "@/contexts/NotificationContexts";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 const { width } = Dimensions.get("window");
 const cardWidth = (width - 48) / 2;
@@ -42,16 +43,34 @@ export default function HomeScreen() {
   } | null>(null);
   const [locationAccess, setLocationAccess] = useState(false);
   const { unreadCount } = useNotifications();
-  console.log(unreadCount);
 
   useFocusEffect(
     useCallback(() => {
-      getUserLocation();
-      fetchItems();
-      fetchCategories();
-      fetchUserName();
+      loadAllData();
     }, []),
   );
+
+  const loadAllData = async () => {
+    setLoading(true);
+    const start = Date.now();
+    try {
+      await Promise.all([
+        fetchItems(),
+        getUserLocation(),
+        fetchCategories(),
+        fetchUserName(),
+      ]);
+    } catch (e) {
+      setError("Noget gik galt – prøv igen");
+    } finally {
+      const elapsed = Date.now() - start;
+      const minDuration = 600;
+      if (elapsed < minDuration) {
+        await new Promise((r) => setTimeout(r, minDuration - elapsed));
+      }
+      setLoading(false);
+    }
+  };
 
   const filteredItems = useMemo(() => {
     let result = items;
@@ -69,8 +88,30 @@ export default function HomeScreen() {
       );
     }
 
+    if (userLocation) {
+      result = [...result].sort((a, b) => {
+        if (!a.latitude || !a.longitude) return 1;
+        if (!b.latitude || !b.longitude) return -1;
+
+        const distA = getDistanceInKm(
+          userLocation.latitude,
+          userLocation.longitude,
+          a.latitude,
+          a.longitude,
+        );
+        const distB = getDistanceInKm(
+          userLocation.latitude,
+          userLocation.longitude,
+          b.latitude,
+          b.longitude,
+        );
+
+        return distA - distB;
+      });
+    }
+
     return result;
-  }, [selectedCategory, searchQuery, items]);
+  }, [selectedCategory, searchQuery, items, userLocation]);
 
   const getUserLocation = async () => {
     const hasAccess = await getUserAccess();
@@ -107,10 +148,14 @@ export default function HomeScreen() {
   };
 
   const fetchUserName = async () => {
-    const response = await getFetch("/api/users/me");
-    const data = await response.json();
-    setName(data.name);
-    setInitial(data.name.substring(0, 1).toUpperCase());
+    try {
+      const response = await getFetch("/api/users/me");
+      const data = await response.json();
+      setName(data.name);
+      setInitial(data.name.substring(0, 1).toUpperCase());
+    } catch (error) {
+      setError("Noget - gik galt");
+    }
   };
 
   const fetchItems = async () => {
@@ -121,8 +166,6 @@ export default function HomeScreen() {
       console.log(data);
     } catch (error) {
       setError("Noget gik galt – prøv igen");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -133,8 +176,6 @@ export default function HomeScreen() {
       setCategories(data);
     } catch (error) {
       setError("Noget gik galt – prøv igen");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -174,6 +215,10 @@ export default function HomeScreen() {
       );
     }
   };
+
+  if (loading) {
+    return <LoadingScreen message="Henter snatches i dit nærområde" />;
+  }
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -488,7 +533,6 @@ const styles = StyleSheet.create({
   cardImage: {
     width: "100%",
     height: 170,
-    
   },
   cardBody: {
     padding: 8,

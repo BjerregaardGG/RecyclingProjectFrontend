@@ -16,6 +16,8 @@ import { User } from "@/interfaces/user";
 import { useCallback } from "react";
 import { getTimeRemaining, useCountdown, isExpired } from "@/utils/dateUtils";
 import { Mascot } from "@/components/Mascot";
+import { StarRating } from "@/components/StarRating";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 export default function PickupDetailScreen() {
   const { id, userId } = useLocalSearchParams();
@@ -24,16 +26,33 @@ export default function PickupDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [otherUser, setOtherUser] = useState<User | null>(null);
+  const [average, setAverage] = useState(0);
 
   // forces re-render every minute so that time remaining updates
   useCountdown();
 
   useFocusEffect(
     useCallback(() => {
-      fetchRequest();
-      fetchUser();
+      loadAllData();
     }, []),
   );
+
+  const loadAllData = async () => {
+    setLoading(true);
+    const start = Date.now();
+    try {
+      await Promise.all([fetchRequest(), fetchUser()]);
+    } catch (e) {
+      setError("Noget gik galt – prøv igen");
+    } finally {
+      const elapsed = Date.now() - start;
+      const minDuration = 600;
+      if (elapsed < minDuration) {
+        await new Promise((r) => setTimeout(r, minDuration - elapsed));
+      }
+      setLoading(false);
+    }
+  };
 
   const fetchRequest = async () => {
     try {
@@ -47,8 +66,6 @@ export default function PickupDetailScreen() {
       console.log(data);
     } catch (error) {
       setError("Noget gik galt – prøv igen");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -59,13 +76,22 @@ export default function PickupDetailScreen() {
       if (!response.ok) {
         setError("Kunne ikke finde brugeren");
       }
-
       const userData = await response.json();
       setOtherUser(userData);
+      fetchRating(userData.id);
     } catch (error) {
       setError("Noget gik galt - prøv igen");
-    } finally {
-      setLoading(false);
+    }
+  };
+
+  const fetchRating = async (userId: number) => {
+    try {
+      const response = await getFetch(`/api/reviews/user/${userId}/average`);
+      if (!response.ok) return;
+      const data = await response.json();
+      setAverage(data.averageRating);
+    } catch (e) {
+      setError("Noget gik galt - prøv igen");
     }
   };
 
@@ -124,11 +150,7 @@ export default function PickupDetailScreen() {
   };
 
   if (loading) {
-    return (
-      <View style={styles.centered}>
-        <Text>Indlæser...</Text>
-      </View>
-    );
+    return <LoadingScreen message="Henter anmodning" />;
   }
 
   if (!request) {
@@ -239,7 +261,10 @@ export default function PickupDetailScreen() {
                 </Text>
               )}
             </View>
-            <Text style={styles.userName}>{otherUser?.name}</Text>
+            <View style={styles.userInfo}>
+              <Text style={styles.userName}>{otherUser?.name}</Text>
+              <StarRating rating={average} size={13} />
+            </View>
           </View>
         </View>
       </TouchableOpacity>
@@ -547,5 +572,10 @@ const styles = StyleSheet.create({
     color: "#888",
     textAlign: "center",
     lineHeight: 20,
+  },
+  userInfo: {
+    flex: 1,
+    gap: 6,
+    paddingTop: 4,
   },
 });

@@ -22,6 +22,7 @@ import { Mascot } from "@/components/Mascot";
 import { Ionicons } from "@expo/vector-icons";
 import { StarRating } from "@/components/StarRating";
 import { handleLogout } from "@/utils/authUtils";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 const { width } = Dimensions.get("window");
 const cardWidth = (width - 48) / 2;
@@ -55,11 +56,26 @@ export default function ProfileScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      fetchItems();
-      fetchUserData();
-      fetchLikedItems();
+      loadAllData();
     }, []),
   );
+
+  const loadAllData = async () => {
+    setLoading(true);
+    const start = Date.now();
+    try {
+      await Promise.all([fetchItems(), fetchUserData(), fetchLikedItems()]);
+    } catch (e) {
+      setError("Noget gik galt – prøv igen");
+    } finally {
+      const elapsed = Date.now() - start;
+      const minDuration = 600;
+      if (elapsed < minDuration) {
+        await new Promise((r) => setTimeout(r, minDuration - elapsed));
+      }
+      setLoading(false);
+    }
+  };
 
   const filteredItems = useMemo(() => {
     let result;
@@ -107,8 +123,6 @@ export default function ProfileScreen() {
       console.log(data);
     } catch (error) {
       setError("Noget gik galt – prøv igen");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -159,6 +173,10 @@ export default function ProfileScreen() {
   };
 
   const [menuOpen, setMenuOpen] = useState(false);
+
+  if (loading) {
+    return <LoadingScreen message="Henter din profil" />;
+  }
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>

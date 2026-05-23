@@ -17,6 +17,7 @@ import { formatRelativeTime } from "@/utils/dateUtils";
 import { useRouter } from "expo-router";
 import { getTimeRemaining, useCountdown, isExpired } from "@/utils/dateUtils";
 import { Mascot } from "@/components/Mascot";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 type Tab = "received" | "sent";
 // forces re-render every minute so that time remaining updates
@@ -81,9 +82,26 @@ function ReceivedList() {
 
   useFocusEffect(
     useCallback(() => {
-      fetchReceivedRequests();
+      loadAllData();
     }, []),
   );
+
+  const loadAllData = async () => {
+    setLoading(true);
+    const start = Date.now();
+    try {
+      await Promise.all([fetchReceivedRequests()]);
+    } catch (e) {
+      setError("Noget gik galt – prøv igen");
+    } finally {
+      const elapsed = Date.now() - start;
+      const minDuration = 600;
+      if (elapsed < minDuration) {
+        await new Promise((r) => setTimeout(r, minDuration - elapsed));
+      }
+      setLoading(false);
+    }
+  };
 
   const fetchReceivedRequests = async () => {
     try {
@@ -96,8 +114,6 @@ function ReceivedList() {
       setRequests(requests);
     } catch (error) {
       setError("Noget gik galt - prøv igen");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -141,13 +157,15 @@ function ReceivedList() {
     );
   };
 
+  if (loading) {
+    <LoadingScreen message="Henter dine anmodninger" />;
+  }
+
   const sortedRequests = [...requests].sort((a, b) => {
     if (a.status === "PENDING" && b.status !== "PENDING") return -1;
     if (a.status !== "PENDING" && b.status === "PENDING") return 1;
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
-
-  if (loading) return <Text style={styles.loadingText}>Indlæser...</Text>;
 
   if (requests.length === 0) {
     return (
@@ -261,9 +279,26 @@ function SentList() {
 
   useFocusEffect(
     useCallback(() => {
-      fetchOutgoingRequests();
+      loadAllData();
     }, []),
   );
+
+  const loadAllData = async () => {
+    setLoading(true);
+    const start = Date.now();
+    try {
+      await Promise.all([fetchOutgoingRequests()]);
+    } catch (e) {
+      setError("Noget gik galt – prøv igen");
+    } finally {
+      const elapsed = Date.now() - start;
+      const minDuration = 600;
+      if (elapsed < minDuration) {
+        await new Promise((r) => setTimeout(r, minDuration - elapsed));
+      }
+      setLoading(false);
+    }
+  };
 
   const fetchOutgoingRequests = async () => {
     try {
@@ -281,13 +316,15 @@ function SentList() {
     }
   };
 
+  if (loading) {
+    return <LoadingScreen message="Henter dine anmodninger" />;
+  }
+
   const sortedRequests = [...requests].sort((a, b) => {
     if (a.status === "PENDING" && b.status !== "PENDING") return -1;
     if (a.status !== "PENDING" && b.status === "PENDING") return 1;
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
-
-  if (loading) return <Text style={styles.loadingText}>Indlæser...</Text>;
 
   if (requests.length === 0) {
     return (

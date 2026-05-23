@@ -57,6 +57,7 @@ export default function ChatScreen() {
     }
   }, [messages]);
 
+  // Scroll to bottom when the keyboard changes
   useEffect(() => {
     const keyboardDidShow = Keyboard.addListener("keyboardDidShow", () => {
       setTimeout(() => {
@@ -79,15 +80,12 @@ export default function ChatScreen() {
   const fetchUser = async () => {
     try {
       const response = await getFetch("/api/users/me");
-
       if (!response.ok) {
         console.log(console.error);
       }
       const userData = await response.json();
       setUserData(userData);
-    } catch (e) {
-    } finally {
-    }
+    } catch (e) {}
   };
 
   const renderMessage = ({ item }: { item: Message }) => {

@@ -42,12 +42,12 @@ export async function searchAdresses(query: string): Promise<Address[]> {
   return result;
 }
 
-export function calculateDistance(
+export function getDistanceInKm(
   lat1: number,
   lon1: number,
   lat2: number,
   lon2: number,
-): string {
+): number {
   const R = 6371;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
   const dLon = ((lon2 - lon1) * Math.PI) / 180;
@@ -58,12 +58,24 @@ export function calculateDistance(
       Math.sin(dLon / 2) *
       Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  const distance = R * c;
-  const meters = Math.round(distance * 1000);
+  return R * c;
+}
+
+function formatDistance(distanceInKm: number): string {
+  const meters = Math.round(distanceInKm * 1000);
 
   if (meters < 100) return "Under 100 m væk";
   if (meters < 250) return "Under 250 m væk";
   if (meters < 500) return "Under 500 m væk";
   if (meters < 1000) return "Under 1 km væk";
-  return `${distance.toFixed(1)} km væk`;
+  return `${distanceInKm.toFixed(1)} km væk`;
+}
+
+export function calculateDistance(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number,
+): string {
+  return formatDistance(getDistanceInKm(lat1, lon1, lat2, lon2));
 }

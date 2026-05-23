@@ -17,6 +17,8 @@ import { calculateDistance } from "@/utils/locationUtils";
 import { PickupRequest } from "@/interfaces/pickupRequest";
 import InfoTooltip from "@/components/InfoToolTip";
 import { Mascot } from "@/components/Mascot";
+import { StarRating } from "@/components/StarRating";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 export default function ItemScreen() {
   const { id, userId, latitude, longitude } = useLocalSearchParams();
@@ -30,14 +32,30 @@ export default function ItemScreen() {
   const [pickupRequest, setPickupRequest] = useState<PickupRequest | null>(
     null,
   );
+  const [average, setAverage] = useState(0);
 
   useFocusEffect(
     useCallback(() => {
-      fetchItem();
-      fetchUser();
-      fetchLoggedInUser();
+      loadAllData();
     }, []),
   );
+
+  const loadAllData = async () => {
+    setLoading(true);
+    const start = Date.now();
+    try {
+      await Promise.all([fetchItem(), fetchUser(), fetchLoggedInUser()]);
+    } catch (e) {
+      setError("Noget gik galt – prøv igen");
+    } finally {
+      const elapsed = Date.now() - start;
+      const minDuration = 1000;
+      if (elapsed < minDuration) {
+        await new Promise((r) => setTimeout(r, minDuration - elapsed));
+      }
+      setLoading(false);
+    }
+  };
 
   const locationIsPresent = (): boolean => {
     if (!item?.latitude || !item?.longitude) return false;
@@ -52,8 +70,6 @@ export default function ItemScreen() {
       setItem(data);
     } catch (error) {
       setError("Noget gik galt – prøv igen");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -61,12 +77,22 @@ export default function ItemScreen() {
     try {
       const response = await getFetch(`/api/users/${userId}`);
       const data = await response.json();
+      fetchRating(data.id);
       setUserData(data);
       console.log(userData);
     } catch (error) {
       setError("Noget gik galt - prøv igen");
-    } finally {
-      setLoading(false);
+    }
+  };
+
+  const fetchRating = async (userId: number) => {
+    try {
+      const response = await getFetch(`/api/reviews/user/${userId}/average`);
+      if (!response.ok) return;
+      const data = await response.json();
+      setAverage(data.averageRating);
+    } catch (e) {
+      setError("Noget gik galt - prøv igen");
     }
   };
 
@@ -80,8 +106,6 @@ export default function ItemScreen() {
       setLoggedInUserData(data);
     } catch (e) {
       setError("Noget gik galt");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -97,15 +121,12 @@ export default function ItemScreen() {
       setSuccess("Du er markeret som interesseret i at afhente denne ting!");
     } catch (error) {
       setError("Noget gik galt – prøv igen");
-    } finally {
-      setLoading(false);
     }
   };
 
   const deleteItem = async () => {
     try {
       const response = await deleteFetch(`/api/items/${id}`);
-
       if (!response.ok) {
         setError("Noget gik galt - prøv igen");
       }
@@ -113,17 +134,11 @@ export default function ItemScreen() {
       router.replace("/(tabs)");
     } catch (error) {
       setError("Noget gik galt – prøv igen");
-    } finally {
-      setLoading(false);
     }
   };
 
   if (loading) {
-    return (
-      <View style={styles.centered}>
-        <Text>Indlæser...</Text>
-      </View>
-    );
+    return <LoadingScreen message="Henter item" />;
   }
 
   if (!item) {
@@ -296,7 +311,10 @@ export default function ItemScreen() {
                 </Text>
               )}
             </View>
-            <Text style={styles.userName}>{userData?.name}</Text>
+            <View style={styles.userInfo}>
+              <Text style={styles.userName}>{userData?.name}</Text>
+              <StarRating rating={average} size={13} />
+            </View>
           </View>
         </View>
       </TouchableOpacity>
@@ -494,5 +512,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#555",
     fontWeight: "500",
+  },
+  userInfo: {
+    flex: 1,
+    gap: 6,
+    paddingTop: 4,
   },
 });

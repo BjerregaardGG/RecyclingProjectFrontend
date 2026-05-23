@@ -18,6 +18,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
 import { Mascot } from "@/components/Mascot";
 import { StarRating } from "@/components/StarRating";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 const { width } = Dimensions.get("window");
 const cardWidth = (width - 48) / 2;
@@ -34,10 +35,26 @@ export default function UserScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      fetchItems();
-      fetchUserData();
+      loadAllData();
     }, []),
   );
+
+  const loadAllData = async () => {
+    setLoading(true);
+    const start = Date.now();
+    try {
+      await Promise.all([fetchItems(), fetchUserData()]);
+    } catch (e) {
+      setError("Noget gik galt – prøv igen");
+    } finally {
+      const elapsed = Date.now() - start;
+      const minDuration = 600;
+      if (elapsed < minDuration) {
+        await new Promise((r) => setTimeout(r, minDuration - elapsed));
+      }
+      setLoading(false);
+    }
+  };
 
   const fetchUserData = async () => {
     try {
@@ -50,8 +67,6 @@ export default function UserScreen() {
       fetchRating(data.id);
     } catch (e) {
       setError("Noget gik galt - prøv igen");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -62,8 +77,6 @@ export default function UserScreen() {
       setItems(data);
     } catch (error) {
       setError("Noget gik galt – prøv igen");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -78,6 +91,10 @@ export default function UserScreen() {
       setError("Noget gik galt - prøv igen");
     }
   };
+
+  if (loading) {
+    return <LoadingScreen message="Henter bruger" />;
+  }
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>

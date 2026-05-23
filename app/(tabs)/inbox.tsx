@@ -15,6 +15,7 @@ import { Conversation } from "@/interfaces/conversation";
 import { formatRelativeTime } from "@/utils/dateUtils";
 import { Mascot } from "@/components/Mascot";
 import { useNotifications } from "@/contexts/NotificationContexts";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 type Tab = "notifications" | "messages";
 
@@ -190,9 +191,26 @@ function Messages() {
 
   useFocusEffect(
     useCallback(() => {
-      fetchConversations();
+      loadAllData();
     }, []),
   );
+
+  const loadAllData = async () => {
+    setLoading(true);
+    const start = Date.now();
+    try {
+      await Promise.all([fetchConversations()]);
+    } catch (e) {
+      setError("Noget gik galt – prøv igen");
+    } finally {
+      const elapsed = Date.now() - start;
+      const minDuration = 600;
+      if (elapsed < minDuration) {
+        await new Promise((r) => setTimeout(r, minDuration - elapsed));
+      }
+      setLoading(false);
+    }
+  };
 
   const fetchConversations = async () => {
     try {
@@ -206,10 +224,12 @@ function Messages() {
       setConversation(conversations);
     } catch (error) {
       setError("Noget gik galt - prøv igen");
-    } finally {
-      setLoading(false);
     }
   };
+
+  if (loading) {
+    return <LoadingScreen message="Henter dine beskeder" />;
+  }
 
   if (conversations.length === 0) {
     return (
