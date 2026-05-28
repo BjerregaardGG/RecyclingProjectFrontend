@@ -1,19 +1,21 @@
-import { useState } from "react";
+import { Mascot } from "@/components/Mascot";
 import {
-  View,
+  verifyEmail,
+  verifyPassword,
+  verifyfirstAndSecondPassword,
+} from "@/utils/authUtils";
+import { postFetch } from "@/utils/fetchUtils";
+import { PostalCode, searchPostalCodes } from "@/utils/locationUtils";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
+import {
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
+  View,
 } from "react-native";
-import { useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import {
-  verifyPassword,
-  verifyfirstAndSecondPassword,
-  verifyEmail,
-} from "@/utils/authUtils";
-import { searchPostalCodes, PostalCode } from "@/utils/locationUtils";
 
 export default function registerScreen() {
   const router = useRouter();
@@ -30,12 +32,24 @@ export default function registerScreen() {
   const [selectedPostalCode, setSelectedPostalcode] = useState<String | null>(
     null,
   );
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const handleLocationSearch = async (query: string) => {
     setCityQuery(query);
     const postalCodes = await searchPostalCodes(query);
     setPostalCodes(postalCodes);
   };
+
+  useEffect(() => {
+    if (!showSuccess) return;
+
+    const timer = setTimeout(() => {
+      setShowSuccess(false);
+      router.replace("/auth/login");
+    }, 3500);
+
+    return () => clearTimeout(timer);
+  }, [showSuccess]);
 
   const handleRegisterAccount = async () => {
     if (!verifyfirstAndSecondPassword(password, secondPassword, setError))
@@ -44,30 +58,24 @@ export default function registerScreen() {
     if (!verifyEmail(email, setError)) return;
 
     try {
-      const response = await fetch(
-        `${process.env.EXPO_PUBLIC_API_URL}/api/auth/register`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email,
-            name,
-            password,
-            city: selectedCity,
-            postalCode: selectedPostalCode,
-          }),
-        },
-      );
+      const response = await postFetch("/api/auth/register", {
+        email,
+        name,
+        password,
+        city: selectedCity,
+        postalCode: selectedPostalCode,
+      });
 
       if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
         setError(
-          "Emailen eksisterer allerede eller adgangskoden lever ikke op til kravene",
+          errorData?.message ??
+            "Emailen eksisterer allerede eller adgangskoden lever ikke op til kravene",
         );
         return;
       }
 
-      const data = await response.json();
-      router.replace("/auth/login");
+      setShowSuccess(true);
     } catch (error) {
       setError("Noget gik galt – prøv igen");
     }
@@ -79,119 +87,151 @@ export default function registerScreen() {
         <Text style={styles.backText}>← Tilbage</Text>
       </TouchableOpacity>
 
-      <Text style={styles.title}>Snatch</Text>
-      <Text style={styles.subtitle}>Registrer en konto</Text>
-
-      <TouchableOpacity onPress={() => router.push("/auth/login")}>
-        <Text style={styles.linkTop}>Allerede registreret? Log ind</Text>
-      </TouchableOpacity>
-
-      {error ? <Text style={styles.error}>{error}</Text> : null}
-
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        placeholderTextColor="#aaa"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder="Navn"
-        placeholderTextColor="#aaa"
-        value={name}
-        onChangeText={setName}
-        autoCapitalize="words"
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder="Søg efter by eller postnummer"
-        placeholderTextColor="#aaa"
-        value={cityQuery}
-        onChangeText={handleLocationSearch}
-      />
-
-      {postalCodes.length > 0 && (
-        <View style={styles.dropdown}>
-          {postalCodes.map((postal, index) => (
-            <TouchableOpacity
-              key={`${postal.postnummer.nr}-${index}`}
-              style={styles.dropdownItem}
-              onPress={() => {
-                setSelectedCity(postal.postnummer.navn);
-                setSelectedPostalcode(postal.postnummer.nr);
-                setCityQuery(
-                  `${postal.postnummer.nr} ${postal.postnummer.navn}`,
-                );
-                setPostalCodes([]);
-              }}
-            >
-              <Text style={styles.dropdownText}>
-                {postal.postnummer.nr} {postal.postnummer.navn}
-              </Text>
-            </TouchableOpacity>
-          ))}
+      {showSuccess ? (
+        <View style={styles.successScreen}>
+          <Mascot mood="excited" size={200} />
+          <Text style={styles.successTitle}>Din konto er oprettet!</Text>
+          <Text style={styles.successSubtitle}>Du kan nu logge ind</Text>
         </View>
+      ) : (
+        <>
+          <Text style={styles.title}>Snatch</Text>
+          <Text style={styles.subtitle}>Registrer en konto</Text>
+
+          <TouchableOpacity onPress={() => router.push("/auth/login")}>
+            <Text style={styles.linkTop}>Allerede registreret? Log ind</Text>
+          </TouchableOpacity>
+
+          {error ? <Text style={styles.error}>{error}</Text> : null}
+
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            placeholderTextColor="#aaa"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+
+          <TextInput
+            style={styles.input}
+            placeholder="Navn"
+            placeholderTextColor="#aaa"
+            value={name}
+            onChangeText={setName}
+            autoCapitalize="words"
+          />
+
+          <TextInput
+            style={styles.input}
+            placeholder="Søg efter by eller postnummer"
+            placeholderTextColor="#aaa"
+            value={cityQuery}
+            onChangeText={handleLocationSearch}
+          />
+
+          {postalCodes.length > 0 && (
+            <View style={styles.dropdown}>
+              {postalCodes.map((postal, index) => (
+                <TouchableOpacity
+                  key={`${postal.postnummer.nr}-${index}`}
+                  style={styles.dropdownItem}
+                  onPress={() => {
+                    setSelectedCity(postal.postnummer.navn);
+                    setSelectedPostalcode(postal.postnummer.nr);
+                    setCityQuery(
+                      `${postal.postnummer.nr} ${postal.postnummer.navn}`,
+                    );
+                    setPostalCodes([]);
+                  }}
+                >
+                  <Text style={styles.dropdownText}>
+                    {postal.postnummer.nr} {postal.postnummer.navn}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+
+          <View style={styles.passwordWrapper}>
+            <TextInput
+              style={styles.passwordInput}
+              placeholder="Adgangskode"
+              placeholderTextColor="#aaa"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+            <TouchableOpacity
+              style={styles.eyeButton}
+              onPress={() => setShowPassword(!showPassword)}
+            >
+              <Ionicons
+                name={showPassword ? "eye-off-outline" : "eye-outline"}
+                size={20}
+                color="#888"
+              />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.passwordWrapper}>
+            <TextInput
+              style={styles.passwordInput}
+              placeholder="Gentag adgangskode"
+              placeholderTextColor="#aaa"
+              value={secondPassword}
+              onChangeText={setSecondPassword}
+              secureTextEntry={!showSecondPassword}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+            <TouchableOpacity
+              style={styles.eyeButton}
+              onPress={() => setShowSecondPassword(!showSecondPassword)}
+            >
+              <Ionicons
+                name={showSecondPassword ? "eye-off-outline" : "eye-outline"}
+                size={20}
+                color="#888"
+              />
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity
+            style={styles.button}
+            onPress={handleRegisterAccount}
+          >
+            <Text style={styles.buttonText}>Opret konto</Text>
+          </TouchableOpacity>
+        </>
       )}
-
-      <View style={styles.passwordWrapper}>
-        <TextInput
-          style={styles.passwordInput}
-          placeholder="Adgangskode"
-          placeholderTextColor="#aaa"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry={!showPassword}
-          autoCapitalize="none"
-          autoCorrect={false}
-        />
-        <TouchableOpacity
-          style={styles.eyeButton}
-          onPress={() => setShowPassword(!showPassword)}
-        >
-          <Ionicons
-            name={showPassword ? "eye-off-outline" : "eye-outline"}
-            size={20}
-            color="#888"
-          />
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.passwordWrapper}>
-        <TextInput
-          style={styles.passwordInput}
-          placeholder="Gentag adgangskode"
-          placeholderTextColor="#aaa"
-          value={secondPassword}
-          onChangeText={setSecondPassword}
-          secureTextEntry={!showSecondPassword}
-          autoCapitalize="none"
-          autoCorrect={false}
-        />
-        <TouchableOpacity
-          style={styles.eyeButton}
-          onPress={() => setShowSecondPassword(!showSecondPassword)}
-        >
-          <Ionicons
-            name={showSecondPassword ? "eye-off-outline" : "eye-outline"}
-            size={20}
-            color="#888"
-          />
-        </TouchableOpacity>
-      </View>
-
-      <TouchableOpacity style={styles.button} onPress={handleRegisterAccount}>
-        <Text style={styles.buttonText}>Opret konto</Text>
-      </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  successScreen: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#f2f5f0",
+    paddingHorizontal: 32,
+    gap: 12,
+  },
+  successTitle: {
+    fontSize: 20,
+    fontWeight: "500",
+    color: "#3a7d3a",
+    textAlign: "center",
+  },
+  successSubtitle: {
+    fontSize: 14,
+    color: "#888",
+    textAlign: "center",
+  },
   container: {
     flex: 1,
     backgroundColor: "#f2f5f0",

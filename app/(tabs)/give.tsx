@@ -1,24 +1,23 @@
-import { useState } from "react";
+import { Mascot } from "@/components/Mascot";
+import { Category } from "@/interfaces/category";
+import { pickAndUploadImage } from "@/utils/cloudinaryUtils";
+import { getFetch, postFetch } from "@/utils/fetchUtils";
+import { Address, searchAdresses } from "@/utils/locationUtils";
+import { Ionicons } from "@expo/vector-icons";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
+  Alert,
   Image,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { pickAndUploadImage } from "@/utils/cloudinaryUtils";
-import { postFetch } from "@/utils/fetchUtils";
-import { Category } from "@/interfaces/category";
-import { router, useFocusEffect } from "expo-router";
-import { useCallback, useEffect } from "react";
-import { getFetch } from "@/utils/fetchUtils";
-import { searchAdresses, Address } from "@/utils/locationUtils";
-import { Mascot } from "@/components/Mascot";
 
 export default function GiveScreen() {
   const [name, setName] = useState("");
@@ -63,10 +62,11 @@ export default function GiveScreen() {
   const fetchCategories = async () => {
     try {
       const response = await getFetch("/api/categories");
+      if (!response.ok) return;
       const data = await response.json();
       setCategories(data);
     } catch (error) {
-      setError("Noget gik galt – prøv igen");
+      console.log(error);
     }
   };
 
@@ -76,16 +76,28 @@ export default function GiveScreen() {
   };
 
   const handleUpload = async () => {
+    if (!image) {
+      Alert.alert("Venligst upload et billede af din snatch");
+      return;
+    }
     if (!name) {
-      setError("Venligst udfyld navnet på din genstand");
+      Alert.alert("Venligst giv din snatch et navn");
+      return;
+    }
+    if (!secondTitle) {
+      Alert.alert("Venligst giv din snatch en undertitel");
       return;
     }
     if (!description) {
-      setError("Venligst giv din wastey en beskrivelse");
+      Alert.alert("Venligst giv din snatch en beskrivelse");
       return;
     }
     if (!selectedCategory) {
-      setError("Venligst giv din wastey en kategori");
+      Alert.alert("Venligst giv din snatch en kategori");
+      return;
+    }
+    if (!addreessQuery) {
+      Alert.alert("Venligst oplys et afhentningssted");
       return;
     }
 
@@ -106,9 +118,12 @@ export default function GiveScreen() {
 
     try {
       const response = await postFetch("/api/items", newItem);
-
       if (!response.ok) {
-        setError("Noget gik galt – prøv igen");
+        const errorData = await response.json().catch(() => null);
+        Alert.alert(
+          errorData?.message ??
+            "Kunne ikke uploade din snatch. Tjek om alle felter er opgivet.",
+        );
         return;
       }
 
@@ -124,7 +139,7 @@ export default function GiveScreen() {
 
       setShowSuccess(true);
     } catch (error) {
-      setError("Noget gik galt – prøv igen");
+      Alert.alert("Noget gik galt – prøv igen");
     } finally {
       setLoading(false);
     }

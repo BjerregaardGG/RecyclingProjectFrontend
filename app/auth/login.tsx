@@ -1,15 +1,16 @@
+import { Mascot } from "@/components/Mascot";
+import { postFetch } from "@/utils/fetchUtils";
+import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage"; // To save the Web token
+import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
-  View,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
+  View,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage"; // To save the Web token
-import { useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import { Mascot } from "@/components/Mascot";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -20,17 +21,11 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     try {
-      const response = await fetch(
-        `${process.env.EXPO_PUBLIC_API_URL}/api/auth/login`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
-        },
-      );
+      const response = await postFetch("/api/auth/login", { email, password });
 
       if (!response.ok) {
-        setError("Forkert email eller adgangskode");
+        const errorData = await response.json().catch(() => null);
+        setError(errorData?.message ?? "Forkert email eller adgangskode");
         return;
       }
 

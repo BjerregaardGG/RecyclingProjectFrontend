@@ -1,23 +1,26 @@
 // app/(tabs)/inbox.tsx
-import { useState, useCallback } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Image,
-  Alert,
-} from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { PickupRequest } from "@/interfaces/pickupRequest";
-import { getFetch, patchFetch } from "@/utils/fetchUtils";
-import { useFocusEffect } from "expo-router";
-import { formatRelativeTime } from "@/utils/dateUtils";
-import { useRouter } from "expo-router";
-import { getTimeRemaining, useCountdown, isExpired } from "@/utils/dateUtils";
-import { Mascot } from "@/components/Mascot";
 import { LoadingScreen } from "@/components/LoadingScreen";
+import { Mascot } from "@/components/Mascot";
+import { PickupRequest } from "@/interfaces/pickupRequest";
+import {
+  formatRelativeTime,
+  getTimeRemaining,
+  isExpired,
+  useCountdown,
+} from "@/utils/dateUtils";
+import { getFetch, patchFetch } from "@/utils/fetchUtils";
+import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useState } from "react";
+import {
+  Alert,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 type Tab = "received" | "sent";
 // forces re-render every minute so that time remaining updates
@@ -74,7 +77,6 @@ export default function InboxScreen() {
 /* ---------------- Recieved Requests ---------------- */
 function ReceivedList() {
   const [requests, setRequests] = useState<PickupRequest[]>([]);
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -88,17 +90,11 @@ function ReceivedList() {
 
   const loadAllData = async () => {
     setLoading(true);
-    const start = Date.now();
     try {
       await Promise.all([fetchReceivedRequests()]);
     } catch (e) {
-      setError("Noget gik galt – prøv igen");
+      console.log(e);
     } finally {
-      const elapsed = Date.now() - start;
-      const minDuration = 600;
-      if (elapsed < minDuration) {
-        await new Promise((r) => setTimeout(r, minDuration - elapsed));
-      }
       setLoading(false);
     }
   };
@@ -107,27 +103,30 @@ function ReceivedList() {
     try {
       const response = await getFetch("/api/pickups/incoming");
       if (!response.ok) {
-        setError("Noget gik galt - prøv igen");
+        return;
       }
-
       const requests = await response.json();
       setRequests(requests);
     } catch (error) {
-      setError("Noget gik galt - prøv igen");
+      console.log(error);
     }
   };
 
   const handleAccept = async (id: number) => {
     try {
       const response = await patchFetch(`/api/pickups/${id}/accept`, {});
-      if (!response.ok) return;
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        Alert.alert(errorData?.message ?? "Kunne ikke acceptere anmodningen");
+        return;
+      }
       setRequests((prev) =>
         prev.map((req) =>
           req.id === id ? { ...req, status: "ACCEPTED" } : req,
         ),
       );
     } catch (error) {
-      setError("Noget gik galt - prøv igen");
+      Alert.alert("Noget gik galt - prøv igen");
     }
   };
 
@@ -146,10 +145,16 @@ function ReceivedList() {
                 `/api/pickups/${id}/decline`,
                 {},
               );
-              if (!response.ok) return;
-              router.back();
+              if (!response.ok) {
+                const errorData = await response.json().catch(() => null);
+                Alert.alert(
+                  errorData?.message ?? "Kunne ikke afvise anmodningen",
+                );
+                return;
+              }
+              setRequests((prev) => prev.filter((req) => req.id !== id));
             } catch (error) {
-              setError("Noget gik galt – prøv igen");
+              Alert.alert("Noget gik galt – prøv igen");
             }
           },
         },
@@ -158,7 +163,7 @@ function ReceivedList() {
   };
 
   if (loading) {
-    <LoadingScreen message="Henter dine anmodninger" />;
+    return <LoadingScreen message="Henter dine anmodninger" />;
   }
 
   const sortedRequests = [...requests].sort((a, b) => {
@@ -271,7 +276,6 @@ function ReceivedList() {
 /* ---------------- Sent requests ---------------- */
 function SentList() {
   const [requests, setRequests] = useState<PickupRequest[]>([]);
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -285,17 +289,11 @@ function SentList() {
 
   const loadAllData = async () => {
     setLoading(true);
-    const start = Date.now();
     try {
       await Promise.all([fetchOutgoingRequests()]);
     } catch (e) {
-      setError("Noget gik galt – prøv igen");
+      console.log(e);
     } finally {
-      const elapsed = Date.now() - start;
-      const minDuration = 600;
-      if (elapsed < minDuration) {
-        await new Promise((r) => setTimeout(r, minDuration - elapsed));
-      }
       setLoading(false);
     }
   };
@@ -304,15 +302,11 @@ function SentList() {
     try {
       const response = await getFetch(`/api/pickups/outgoing`);
 
-      if (!response.ok) setError("Noget gik galt - prøv igen");
-
+      if (!response.ok) return;
       const requests = await response.json();
-      console.log(requests);
       setRequests(requests);
     } catch (error) {
-      setError("Noget gik galt - prøv igen");
-    } finally {
-      setLoading(false);
+      console.log(error);
     }
   };
 

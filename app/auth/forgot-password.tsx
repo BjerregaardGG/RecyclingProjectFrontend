@@ -1,20 +1,31 @@
-import { useState } from "react";
+import { Mascot } from "@/components/Mascot";
+import { verifyEmail } from "@/utils/authUtils";
+import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import {
-  View,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
+  View,
 } from "react-native";
-import { verifyEmail } from "@/utils/authUtils";
-import { useRouter } from "expo-router";
-import { Mascot } from "@/components/Mascot";
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  useEffect(() => {
+    if (!showSuccess) return;
+
+    const timer = setTimeout(() => {
+      setShowSuccess(false);
+      router.replace("/auth/login");
+    }, 3500);
+
+    return () => clearTimeout(timer);
+  }, [showSuccess]);
 
   const handleForgotPassword = async () => {
     if (!verifyEmail(email, setError)) return;
@@ -27,17 +38,13 @@ export default function ForgotPasswordScreen() {
         },
       );
 
-      console.log("Status:", response.status);
-
       if (!response.ok) {
-        console.log("Catch fejl:", error);
-        setError("Noget gik galt – prøv igen");
+        const errorData = await response.json().catch(() => null);
+        setError(errorData?.message ?? "Email-adressen er ikke gyldig");
         return;
       }
 
-      setSuccess(
-        "Vi har sendt dig en email med et link til at nulstille dit password",
-      );
+      setShowSuccess(true);
       setError("");
     } catch (error) {
       console.log("Catch fejl:", error);
@@ -51,35 +58,68 @@ export default function ForgotPasswordScreen() {
         <Text style={styles.backText}>← Tilbage</Text>
       </TouchableOpacity>
 
-      <View style={styles.sadState}>
-        <Mascot mood="sad" size={160} />
-      </View>
-      <Text style={styles.title}>Glemt password?</Text>
-      <Text style={styles.subtitle}>
-        Indtast din email så sender vi dig et link
-      </Text>
+      {showSuccess ? (
+        <View style={styles.successScreen}>
+          <Mascot mood="excited" size={200} />
+          <Text style={styles.successTitle}>Email sendt!</Text>
+          <Text style={styles.successSubtitle}>
+            Vi har sendt dig et link til at nulstille dit password
+          </Text>
+        </View>
+      ) : (
+        <>
+          <View style={styles.sadState}>
+            <Mascot mood="sad" size={160} />
+          </View>
+          <Text style={styles.title}>Glemt password?</Text>
+          <Text style={styles.subtitle}>
+            Indtast din email så sender vi dig et link
+          </Text>
 
-      {error ? <Text style={styles.error}>{error}</Text> : null}
-      {success ? <Text style={styles.success}>{success}</Text> : null}
+          {error ? <Text style={styles.error}>{error}</Text> : null}
 
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        placeholderTextColor="#aaa"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            placeholderTextColor="#aaa"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
 
-      <TouchableOpacity style={styles.button} onPress={handleForgotPassword}>
-        <Text style={styles.buttonText}>Send link</Text>
-      </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={handleForgotPassword}
+          >
+            <Text style={styles.buttonText}>Send link</Text>
+          </TouchableOpacity>
+        </>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  successScreen: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#f2f5f0",
+    paddingHorizontal: 32,
+    gap: 12,
+  },
+  successTitle: {
+    fontSize: 20,
+    fontWeight: "500",
+    color: "#3a7d3a",
+    textAlign: "center",
+  },
+  successSubtitle: {
+    fontSize: 14,
+    color: "#888",
+    textAlign: "center",
+  },
   sadState: {
     alignItems: "center",
     justifyContent: "center",

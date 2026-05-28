@@ -1,24 +1,24 @@
-import { useState, useRef, useEffect } from "react";
-import {
-  Image,
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  FlatList,
-  KeyboardAvoidingView,
-  Platform,
-} from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
 import { useChat } from "@/hooks/useChat";
 import { Message } from "@/interfaces/message";
 import { User } from "@/interfaces/user";
 import { formatRelativeTime } from "@/utils/dateUtils";
 import { getFetch } from "@/utils/fetchUtils";
+import { Ionicons } from "@expo/vector-icons";
 import { useHeaderHeight } from "@react-navigation/elements";
-import { Keyboard } from "react-native";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useRef, useState } from "react";
+import {
+  FlatList,
+  Image,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export default function ChatScreen() {
   const {
@@ -36,7 +36,6 @@ export default function ChatScreen() {
     pickupImage: string;
     pickupTitle: string;
   }>();
-  console.log("Params modtaget:", { pickupId, pickupTitle });
   const router = useRouter();
   const flatListRef = useRef<FlatList>(null);
   const { messages, connected, loading, sendMessage } = useChat(
@@ -80,12 +79,12 @@ export default function ChatScreen() {
   const fetchUser = async () => {
     try {
       const response = await getFetch("/api/users/me");
-      if (!response.ok) {
-        console.log(console.error);
-      }
+      if (!response.ok) return;
       const userData = await response.json();
       setUserData(userData);
-    } catch (e) {}
+    } catch (e) {
+      console.log(e);
+    }
   };
 
   const renderMessage = ({ item }: { item: Message }) => {

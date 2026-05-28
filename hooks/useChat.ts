@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from "react";
-import { Client, IMessage as StompMessage } from "@stomp/stompjs";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Message } from "@/interfaces/message";
 import { getFetch, patchFetch } from "@/utils/fetchUtils";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Client, IMessage as StompMessage } from "@stomp/stompjs";
+import { useEffect, useRef, useState } from "react";
 import SockJS from "sockjs-client";
 import "text-encoding";
 
@@ -32,7 +32,7 @@ export function useChat(pickupId: number | null) {
       }
 
       try {
-        await patchFetch(`/api/messages/pickup/${pickupId}/mark-as-read`);
+        await patchFetch(`/api/messages/pickup/${pickupId}/mark-as-read`, {});
       } catch (error) {
         console.error("Could not mark as read:", error);
       }

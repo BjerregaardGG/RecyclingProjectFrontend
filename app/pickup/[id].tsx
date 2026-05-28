@@ -1,30 +1,28 @@
-import { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  Image,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-  Alert,
-} from "react-native";
-import { useLocalSearchParams, useRouter, useFocusEffect } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import { getFetch, patchFetch } from "@/utils/fetchUtils";
-import { PickupRequest } from "@/interfaces/pickupRequest";
-import { User } from "@/interfaces/user";
-import { useCallback } from "react";
-import { getTimeRemaining, useCountdown, isExpired } from "@/utils/dateUtils";
+import { LoadingScreen } from "@/components/LoadingScreen";
 import { Mascot } from "@/components/Mascot";
 import { StarRating } from "@/components/StarRating";
-import { LoadingScreen } from "@/components/LoadingScreen";
+import { PickupRequest } from "@/interfaces/pickupRequest";
+import { User } from "@/interfaces/user";
+import { getTimeRemaining, isExpired, useCountdown } from "@/utils/dateUtils";
+import { getFetch, patchFetch } from "@/utils/fetchUtils";
+import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import { useCallback, useState } from "react";
+import {
+  Alert,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export default function PickupDetailScreen() {
   const { id, userId } = useLocalSearchParams();
   const router = useRouter();
   const [request, setRequest] = useState<PickupRequest | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   const [otherUser, setOtherUser] = useState<User | null>(null);
   const [average, setAverage] = useState(0);
 
@@ -39,17 +37,11 @@ export default function PickupDetailScreen() {
 
   const loadAllData = async () => {
     setLoading(true);
-    const start = Date.now();
     try {
       await Promise.all([fetchRequest(), fetchUser()]);
     } catch (e) {
-      setError("Noget gik galt – prøv igen");
+      console.log(e);
     } finally {
-      const elapsed = Date.now() - start;
-      const minDuration = 600;
-      if (elapsed < minDuration) {
-        await new Promise((r) => setTimeout(r, minDuration - elapsed));
-      }
       setLoading(false);
     }
   };
@@ -57,30 +49,23 @@ export default function PickupDetailScreen() {
   const fetchRequest = async () => {
     try {
       const response = await getFetch(`/api/pickups/${id}`);
-      if (!response.ok) {
-        setError("Kunne ikke hente anmodning");
-        return;
-      }
+      if (!response.ok) return;
       const data = await response.json();
       setRequest(data);
-      console.log(data);
     } catch (error) {
-      setError("Noget gik galt – prøv igen");
+      console.log(error);
     }
   };
 
   const fetchUser = async () => {
     try {
       const response = await getFetch(`/api/users/${userId}`);
-
-      if (!response.ok) {
-        setError("Kunne ikke finde brugeren");
-      }
+      if (!response.ok) return;
       const userData = await response.json();
       setOtherUser(userData);
       fetchRating(userData.id);
     } catch (error) {
-      setError("Noget gik galt - prøv igen");
+      console.log(error);
     }
   };
 
@@ -91,18 +76,22 @@ export default function PickupDetailScreen() {
       const data = await response.json();
       setAverage(data.averageRating);
     } catch (e) {
-      setError("Noget gik galt - prøv igen");
+      console.log(e);
     }
   };
 
   const handleAccept = async () => {
     try {
       const response = await patchFetch(`/api/pickups/${id}/accept`, {});
-      if (!response.ok) return;
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        Alert.alert(errorData?.message ?? "Kunne ikke acceptere anmodning");
+        return;
+      }
       const updated = await response.json();
       setRequest(updated);
     } catch (error) {
-      setError("Noget gik galt – prøv igen");
+      Alert.alert("Noget gik galt – prøv igen");
     }
   };
 
@@ -121,10 +110,16 @@ export default function PickupDetailScreen() {
                 `/api/pickups/${id}/decline`,
                 {},
               );
-              if (!response.ok) return;
+              if (!response.ok) {
+                const errorData = await response.json().catch(() => null);
+                Alert.alert(
+                  errorData?.message ?? "Kunne ikke afvise anmodning",
+                );
+                return;
+              }
               router.back();
             } catch (error) {
-              setError("Noget gik galt – prøv igen");
+              Alert.alert("Noget gik galt – prøv igen");
             }
           },
         },
@@ -137,15 +132,14 @@ export default function PickupDetailScreen() {
       console.log(id);
       const response = await patchFetch(`/api/pickups/${id}/confirm`, {});
       if (!response.ok) {
-        setError("Noget gik galt - prøv igen");
-        router.back();
+        const errorData = await response.json().catch(() => null);
+        Alert.alert(errorData?.message ?? "Kunne ikke godkende afhentning");
+        return;
       }
-
       const data = await response.json();
-      console.log(data);
       setRequest(data);
     } catch (error) {
-      setError("Noget gik galt – prøv igen");
+      Alert.alert("Noget gik galt – prøv igen");
     }
   };
 
@@ -194,7 +188,6 @@ export default function PickupDetailScreen() {
 
       {/* Hoved sektion */}
       <View style={styles.section}>
-        {error ? <Text style={styles.error}>{error}</Text> : null}
         <Text style={styles.name}>{request.itemName}</Text>
 
         {/* Status badge */}

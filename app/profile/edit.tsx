@@ -1,19 +1,21 @@
-import { useState, useEffect } from "react";
+import { LoadingScreen } from "@/components/LoadingScreen";
+import { User } from "@/interfaces/user";
+import { getFetch, patchFetch } from "@/utils/fetchUtils";
+import { PostalCode, searchPostalCodes } from "@/utils/locationUtils";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import {
-  View,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
+  View,
 } from "react-native";
-import { useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import { getFetch, patchFetch } from "@/utils/fetchUtils";
-import { User } from "@/interfaces/user";
-import { PostalCode, searchPostalCodes } from "@/utils/locationUtils";
 
 export default function EditProfileScreen() {
   const router = useRouter();
@@ -36,12 +38,10 @@ export default function EditProfileScreen() {
   }, []);
 
   const fetchUser = async () => {
+    setLoading(true);
     try {
       const response = await getFetch("/api/users/me");
-      if (!response.ok) {
-        setError("Kunne ikke hente profil");
-        return;
-      }
+      if (!response.ok) return;
       const data: User = await response.json();
       setName(data.name ?? "");
       setProfileText(data.profileText ?? "");
@@ -51,7 +51,7 @@ export default function EditProfileScreen() {
         setCityQuery(data.city);
       }
     } catch (e) {
-      setError("Noget gik galt – prøv igen");
+      console.log(e);
     } finally {
       setLoading(false);
     }
@@ -105,24 +105,21 @@ export default function EditProfileScreen() {
       });
 
       if (!response.ok) {
-        setError("Kunne ikke gemme ændringerne");
+        const errorData = await response.json().catch(() => null);
+        Alert.alert(errorData?.message ?? "Kunne ikke godkende ændringerne");
         return;
       }
 
       router.back();
     } catch (e) {
-      setError("Noget gik galt – prøv igen");
+      Alert.alert("Noget gik galt – prøv igen");
     } finally {
       setSaving(false);
     }
   };
 
   if (loading) {
-    return (
-      <View style={styles.centered}>
-        <Text>Indlæser...</Text>
-      </View>
-    );
+    return <LoadingScreen message="Henter anmodning" />;
   }
 
   return (

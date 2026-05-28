@@ -1,24 +1,21 @@
-import { useState } from "react";
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
-  Image,
-  Dimensions,
-} from "react-native";
-import { Item } from "@/interfaces/item";
-import { getFetch } from "@/utils/fetchUtils";
-import { useCallback } from "react";
-import { useFocusEffect } from "expo-router";
-import { User } from "@/interfaces/user";
-import { useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import { useLocalSearchParams } from "expo-router";
+import { LoadingScreen } from "@/components/LoadingScreen";
 import { Mascot } from "@/components/Mascot";
 import { StarRating } from "@/components/StarRating";
-import { LoadingScreen } from "@/components/LoadingScreen";
+import { Item } from "@/interfaces/item";
+import { User } from "@/interfaces/user";
+import { getFetch } from "@/utils/fetchUtils";
+import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import { useCallback, useState } from "react";
+import {
+  Dimensions,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 const { width } = Dimensions.get("window");
 const cardWidth = (width - 48) / 2;
@@ -26,7 +23,6 @@ const cardWidth = (width - 48) / 2;
 export default function UserScreen() {
   const { id } = useLocalSearchParams();
   const [userData, setUserData] = useState<User | null>(null);
-  const [error, setError] = useState("");
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -41,17 +37,11 @@ export default function UserScreen() {
 
   const loadAllData = async () => {
     setLoading(true);
-    const start = Date.now();
     try {
       await Promise.all([fetchItems(), fetchUserData()]);
     } catch (e) {
-      setError("Noget gik galt – prøv igen");
+      console.log(e);
     } finally {
-      const elapsed = Date.now() - start;
-      const minDuration = 600;
-      if (elapsed < minDuration) {
-        await new Promise((r) => setTimeout(r, minDuration - elapsed));
-      }
       setLoading(false);
     }
   };
@@ -59,24 +49,23 @@ export default function UserScreen() {
   const fetchUserData = async () => {
     try {
       const response = await getFetch(`/api/users/${id}`);
-      if (!response.ok) {
-        setError("Problemer med at indsamle brugerdata");
-      }
+      if (!response.ok) return;
       const data = await response.json();
       setUserData(data);
       fetchRating(data.id);
     } catch (e) {
-      setError("Noget gik galt - prøv igen");
+      console.log(e);
     }
   };
 
   const fetchItems = async () => {
     try {
       const response = await getFetch(`/api/items/user/${id}`);
+      if (!response.ok) return;
       const data = await response.json();
       setItems(data);
     } catch (error) {
-      setError("Noget gik galt – prøv igen");
+      console.log(error);
     }
   };
 
@@ -88,7 +77,7 @@ export default function UserScreen() {
       setAverage(data.averageRating);
       setReviewCount(data.totalReviews);
     } catch (e) {
-      setError("Noget gik galt - prøv igen");
+      console.log(e);
     }
   };
 

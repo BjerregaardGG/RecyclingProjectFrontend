@@ -1,24 +1,23 @@
-import { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  Image,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-} from "react-native";
-import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback } from "react";
-import { Ionicons } from "@expo/vector-icons";
-import { getFetch, postFetch, deleteFetch } from "@/utils/fetchUtils";
-import { Item } from "@/interfaces/item";
-import { User } from "@/interfaces/user";
-import { calculateDistance } from "@/utils/locationUtils";
-import { PickupRequest } from "@/interfaces/pickupRequest";
 import InfoTooltip from "@/components/InfoToolTip";
+import { LoadingScreen } from "@/components/LoadingScreen";
 import { Mascot } from "@/components/Mascot";
 import { StarRating } from "@/components/StarRating";
-import { LoadingScreen } from "@/components/LoadingScreen";
+import { Item } from "@/interfaces/item";
+import { User } from "@/interfaces/user";
+import { deleteFetch, getFetch, postFetch } from "@/utils/fetchUtils";
+import { calculateDistance } from "@/utils/locationUtils";
+import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+import { useCallback, useState } from "react";
+import {
+  Alert,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export default function ItemScreen() {
   const { id, userId, latitude, longitude } = useLocalSearchParams();
@@ -29,9 +28,6 @@ export default function ItemScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [pickupRequest, setPickupRequest] = useState<PickupRequest | null>(
-    null,
-  );
   const [average, setAverage] = useState(0);
 
   useFocusEffect(
@@ -42,17 +38,11 @@ export default function ItemScreen() {
 
   const loadAllData = async () => {
     setLoading(true);
-    const start = Date.now();
     try {
       await Promise.all([fetchItem(), fetchUser(), fetchLoggedInUser()]);
     } catch (e) {
-      setError("Noget gik galt – prøv igen");
+      console.log(e);
     } finally {
-      const elapsed = Date.now() - start;
-      const minDuration = 1000;
-      if (elapsed < minDuration) {
-        await new Promise((r) => setTimeout(r, minDuration - elapsed));
-      }
       setLoading(false);
     }
   };
@@ -66,22 +56,23 @@ export default function ItemScreen() {
   const fetchItem = async () => {
     try {
       const response = await getFetch(`/api/items/${id}`);
+      if (!response.ok) return;
       const data = await response.json();
       setItem(data);
     } catch (error) {
-      setError("Noget gik galt – prøv igen");
+      console.log(error);
     }
   };
 
   const fetchUser = async () => {
     try {
       const response = await getFetch(`/api/users/${userId}`);
+      if (!response.ok) return;
       const data = await response.json();
       fetchRating(data.id);
       setUserData(data);
-      console.log(userData);
     } catch (error) {
-      setError("Noget gik galt - prøv igen");
+      console.log(error);
     }
   };
 
@@ -92,20 +83,18 @@ export default function ItemScreen() {
       const data = await response.json();
       setAverage(data.averageRating);
     } catch (e) {
-      setError("Noget gik galt - prøv igen");
+      console.log(e);
     }
   };
 
   const fetchLoggedInUser = async () => {
     try {
       const response = await getFetch(`/api/users/me`);
-      if (!response.ok) {
-        setError("Kunne ikke indsamle bruger data");
-      }
+      if (!response.ok) return;
       const data = await response.json();
       setLoggedInUserData(data);
     } catch (e) {
-      setError("Noget gik galt");
+      console.log(e);
     }
   };
 
@@ -113,12 +102,12 @@ export default function ItemScreen() {
     try {
       const response = await postFetch(`/api/pickups/items/${id}`, {});
       if (!response.ok) {
-        setError("Noget gik galt – prøv igen");
+        const errorData = await response.json().catch(() => null);
+        setError(errorData?.message ?? "Kunne ikke sende anmodning");
         return;
       }
-      const pickupRequest = await response.json();
-      setPickupRequest(pickupRequest);
-      setSuccess("Du er markeret som interesseret i at afhente denne ting!");
+      setSuccess("Du er nu i kø til denne snatch!");
+      setError("");
     } catch (error) {
       setError("Noget gik galt – prøv igen");
     }
@@ -128,12 +117,13 @@ export default function ItemScreen() {
     try {
       const response = await deleteFetch(`/api/items/${id}`);
       if (!response.ok) {
-        setError("Noget gik galt - prøv igen");
+        const errorData = await response.json().catch(() => null);
+        Alert.alert(errorData?.message ?? "Kunne ikke slette denne item");
+        return;
       }
-      const deletedItem = await response.json();
       router.replace("/(tabs)");
     } catch (error) {
-      setError("Noget gik galt – prøv igen");
+      Alert.alert("Noget gik galt – prøv igen");
     }
   };
 
@@ -234,15 +224,13 @@ export default function ItemScreen() {
         {error ? (
           <View style={styles.stateView}>
             <Mascot mood="happy" size={160} />
-            <Text style={styles.stateText}>
-              Du har allerede anmodet om at snatche denne item!
-            </Text>
+            <Text style={styles.stateText}>{error}</Text>
           </View>
         ) : null}
         {success ? (
           <View style={styles.stateView}>
             <Mascot mood="excited" size={160} />
-            <Text style={styles.stateText}>Du er nu i kø til denne item!</Text>
+            <Text style={styles.stateText}>{success}</Text>
           </View>
         ) : null}
 

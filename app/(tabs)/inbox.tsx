@@ -1,21 +1,20 @@
-import { useState, useCallback } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Image,
-} from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { getFetch } from "@/utils/fetchUtils";
-import { useFocusEffect } from "expo-router";
-import { useRouter } from "expo-router";
-import { Conversation } from "@/interfaces/conversation";
-import { formatRelativeTime } from "@/utils/dateUtils";
+import { LoadingScreen } from "@/components/LoadingScreen";
 import { Mascot } from "@/components/Mascot";
 import { useNotifications } from "@/contexts/NotificationContexts";
-import { LoadingScreen } from "@/components/LoadingScreen";
+import { Conversation } from "@/interfaces/conversation";
+import { formatRelativeTime } from "@/utils/dateUtils";
+import { getFetch } from "@/utils/fetchUtils";
+import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useState } from "react";
+import {
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 type Tab = "notifications" | "messages";
 
@@ -185,7 +184,6 @@ function getIconForType(type: string): keyof typeof Ionicons.glyphMap {
 
 function Messages() {
   const [conversations, setConversation] = useState<Conversation[]>([]);
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -197,17 +195,11 @@ function Messages() {
 
   const loadAllData = async () => {
     setLoading(true);
-    const start = Date.now();
     try {
       await Promise.all([fetchConversations()]);
     } catch (e) {
-      setError("Noget gik galt – prøv igen");
+      console.log(e);
     } finally {
-      const elapsed = Date.now() - start;
-      const minDuration = 600;
-      if (elapsed < minDuration) {
-        await new Promise((r) => setTimeout(r, minDuration - elapsed));
-      }
       setLoading(false);
     }
   };
@@ -215,15 +207,11 @@ function Messages() {
   const fetchConversations = async () => {
     try {
       const response = await getFetch("/api/messages/conversations/me");
-      if (!response.ok) {
-        setError("Noget gik galt - prøv igen");
-        return;
-      }
+      if (!response.ok) return;
       const conversations = await response.json();
-      console.log(conversations);
       setConversation(conversations);
     } catch (error) {
-      setError("Noget gik galt - prøv igen");
+      console.log(error);
     }
   };
 
@@ -297,8 +285,6 @@ function Messages() {
   );
 }
 
-/* ---------------- Styles ---------------- */
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -362,7 +348,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#888",
   },
-  // Notifikations-kort
   notificationCard: {
     flexDirection: "row",
     alignItems: "center",
@@ -404,8 +389,6 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: "#3a7d3a",
   },
-
-  // Tab badge
   tabLabel: {
     flexDirection: "row",
     alignItems: "center",
@@ -424,7 +407,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "500",
   },
-  /* Message card */
   messageCard: {
     flexDirection: "row",
     backgroundColor: "#fff",

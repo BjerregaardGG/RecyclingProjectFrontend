@@ -1,16 +1,16 @@
-import { useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-} from "react-native";
-import { useRouter, useLocalSearchParams } from "expo-router";
 import {
   verifyPassword,
   verifyfirstAndSecondPassword,
 } from "@/utils/authUtils";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useState } from "react";
+import {
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export default function ResetPasswordScreen() {
   const router = useRouter();
@@ -32,12 +32,10 @@ export default function ResetPasswordScreen() {
       );
 
       if (!response.ok) {
-        const text = await response.text();
-        setError("Linket er udløbet – prøv igen");
+        const errorData = await response.json().catch(() => null);
+        setError(errorData?.message ?? "Linket er udløbet – prøv igen");
         return;
       }
-
-      setSuccess("Dit password er nulstillet!");
       setTimeout(() => router.replace("/auth/login"), 2000);
       setError("");
     } catch (error) {

@@ -1,28 +1,26 @@
-import { useState } from "react";
+import { LoadingScreen } from "@/components/LoadingScreen";
+import { Mascot } from "@/components/Mascot";
+import { StarRating } from "@/components/StarRating";
+import { Item } from "@/interfaces/item";
+import { User } from "@/interfaces/user";
+import { handleLogout } from "@/utils/authUtils";
+import { pickAndUploadImage } from "@/utils/cloudinaryUtils";
+import { getFetch, patchFetch } from "@/utils/fetchUtils";
+import { Ionicons, SimpleLineIcons } from "@expo/vector-icons";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useMemo, useState } from "react";
 import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
-  Image,
+  Alert,
   Dimensions,
+  Image,
   Modal,
   Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { Item } from "@/interfaces/item";
-import { getFetch, patchFetch } from "@/utils/fetchUtils";
-import { useCallback, useMemo, useEffect } from "react";
-import { useFocusEffect } from "expo-router";
-import { User } from "@/interfaces/user";
-import { useRouter } from "expo-router";
-import { SimpleLineIcons } from "@expo/vector-icons";
-import { pickAndUploadImage } from "@/utils/cloudinaryUtils";
-import { Mascot } from "@/components/Mascot";
-import { Ionicons } from "@expo/vector-icons";
-import { StarRating } from "@/components/StarRating";
-import { handleLogout } from "@/utils/authUtils";
-import { LoadingScreen } from "@/components/LoadingScreen";
 
 const { width } = Dimensions.get("window");
 const cardWidth = (width - 48) / 2;
@@ -42,7 +40,6 @@ type FilterValue = (typeof FILTER_OPTIONS)[number]["value"];
 
 export default function ProfileScreen() {
   const [userData, setUserData] = useState<User | null>(null);
-  const [error, setError] = useState("");
   const [items, setItems] = useState<Item[]>([]);
   const [likedItems, setLikedItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
@@ -62,17 +59,11 @@ export default function ProfileScreen() {
 
   const loadAllData = async () => {
     setLoading(true);
-    const start = Date.now();
     try {
       await Promise.all([fetchItems(), fetchUserData(), fetchLikedItems()]);
     } catch (e) {
-      setError("Noget gik galt – prøv igen");
+      console.log(e);
     } finally {
-      const elapsed = Date.now() - start;
-      const minDuration = 600;
-      if (elapsed < minDuration) {
-        await new Promise((r) => setTimeout(r, minDuration - elapsed));
-      }
       setLoading(false);
     }
   };
@@ -107,22 +98,27 @@ export default function ProfileScreen() {
   const fetchUserData = async () => {
     try {
       const response = await getFetch("/api/users/me");
+      if (!response.ok) {
+        return;
+      }
       const data = await response.json();
       setUserData(data);
       fetchRating(data.id);
     } catch (e) {
-      setError("Noget gik galt – prøv igen");
+      console.log(e);
     }
   };
 
   const fetchItems = async () => {
     try {
       const response = await getFetch("/api/items/me");
+      if (!response.ok) {
+        return;
+      }
       const data = await response.json();
       setItems(data);
-      console.log(data);
     } catch (error) {
-      setError("Noget gik galt – prøv igen");
+      console.log(error);
     }
   };
 
@@ -134,39 +130,36 @@ export default function ProfileScreen() {
       setAverage(data.averageRating);
       setReviewCount(data.totalReviews);
     } catch (e) {
-      setError("Noget gik galt - prøv igen");
+      console.log(e);
     }
   };
 
   const fetchLikedItems = async () => {
     try {
       const response = await getFetch("/api/likes/me");
-      if (!response.ok) {
-        return;
-      }
-
+      if (!response.ok) return;
       const data = await response.json();
       setLikedItems(data);
     } catch (error) {
-      setError("Noget gik galt - prøv igen");
+      console.log(error);
     }
   };
 
   const uploadPicture = async (url: string) => {
     try {
-      console.log(url);
       const response = await patchFetch(
         `/api/users/me/image?image=${encodeURIComponent(url)}`,
         {},
       );
 
       if (!response.ok) {
-        setError("Noget gik galt - prøv igen");
+        const errorData = await response.json().catch(() => null);
+        Alert.alert(errorData?.message ?? "Kunne ikke uploade billede");
         return;
       }
       setUserData((prev) => (prev ? { ...prev, image: url } : prev));
     } catch (error) {
-      setError("Noget gik galt - prøv igen");
+      Alert.alert("Noget gik galt - prøv igen");
     } finally {
       setLoading(false);
     }

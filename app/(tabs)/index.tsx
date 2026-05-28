@@ -1,27 +1,24 @@
-import { useState } from "react";
-import { useFocusEffect } from "expo-router";
-import { useCallback } from "react";
+import { LoadingScreen } from "@/components/LoadingScreen";
 import { Mascot } from "@/components/Mascot";
+import { useNotifications } from "@/contexts/NotificationContexts";
+import { Category } from "@/interfaces/category";
+import { Item } from "@/interfaces/item";
+import { deleteFetch, getFetch, postFetch } from "@/utils/fetchUtils";
+import { calculateDistance, getDistanceInKm } from "@/utils/locationUtils";
+import { Ionicons } from "@expo/vector-icons";
+import * as Location from "expo-location";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useMemo, useState } from "react";
 import {
-  View,
+  Dimensions,
+  Image,
+  ScrollView,
+  StyleSheet,
   Text,
   TextInput,
-  ScrollView,
   TouchableOpacity,
-  StyleSheet,
-  Image,
-  Dimensions,
+  View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { Item } from "@/interfaces/item";
-import { Category } from "@/interfaces/category";
-import { getFetch, deleteFetch, postFetch } from "@/utils/fetchUtils";
-import { useRouter } from "expo-router";
-import * as Location from "expo-location";
-import { calculateDistance, getDistanceInKm } from "@/utils/locationUtils";
-import { useMemo } from "react";
-import { useNotifications } from "@/contexts/NotificationContexts";
-import { LoadingScreen } from "@/components/LoadingScreen";
 
 const { width } = Dimensions.get("window");
 const cardWidth = (width - 48) / 2;
@@ -29,10 +26,7 @@ const cardWidth = (width - 48) / 2;
 export default function HomeScreen() {
   const [selectedCategory, setSelectedCategory] = useState("Alle");
   const [searchQuery, setSearchQuery] = useState("");
-  const [range, setRange] = useState(5);
   const [name, setName] = useState("");
-  const [initial, setInitial] = useState("");
-  const [error, setError] = useState("");
   const [items, setItems] = useState<Item[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,7 +46,6 @@ export default function HomeScreen() {
 
   const loadAllData = async () => {
     setLoading(true);
-    const start = Date.now();
     try {
       await Promise.all([
         fetchItems(),
@@ -61,20 +54,14 @@ export default function HomeScreen() {
         fetchUserName(),
       ]);
     } catch (e) {
-      setError("Noget gik galt – prøv igen");
+      console.log(e);
     } finally {
-      const elapsed = Date.now() - start;
-      const minDuration = 600;
-      if (elapsed < minDuration) {
-        await new Promise((r) => setTimeout(r, minDuration - elapsed));
-      }
       setLoading(false);
     }
   };
 
   const filteredItems = useMemo(() => {
     let result = items;
-
     if (selectedCategory !== "Alle") {
       result = result.filter((item) => item.category === selectedCategory);
     }
@@ -150,32 +137,34 @@ export default function HomeScreen() {
   const fetchUserName = async () => {
     try {
       const response = await getFetch("/api/users/me");
+      if (!response.ok) return;
+
       const data = await response.json();
       setName(data.name);
-      setInitial(data.name.substring(0, 1).toUpperCase());
     } catch (error) {
-      setError("Noget - gik galt");
+      console.log(error);
     }
   };
 
   const fetchItems = async () => {
     try {
       const response = await getFetch("/api/items");
+      if (!response.ok) return;
       const data = await response.json();
       setItems(data);
-      console.log(data);
     } catch (error) {
-      setError("Noget gik galt – prøv igen");
+      console.log(error);
     }
   };
 
   const fetchCategories = async () => {
     try {
       const response = await getFetch("/api/categories");
+      if (!response.ok) return;
       const data = await response.json();
       setCategories(data);
     } catch (error) {
-      setError("Noget gik galt – prøv igen");
+      console.log(error);
     }
   };
 
@@ -195,13 +184,7 @@ export default function HomeScreen() {
       ),
     );
 
-    try {
-      if (newLiked) {
-        await postFetch(`/api/likes/like/${item.id}`, {});
-      } else {
-        await deleteFetch(`/api/likes/unlike/${item.id}`);
-      }
-    } catch (e) {
+    const rollback = () => {
       setItems((prev) =>
         prev.map((i) =>
           i.id === item.id
@@ -213,6 +196,18 @@ export default function HomeScreen() {
             : i,
         ),
       );
+    };
+
+    try {
+      const response = newLiked
+        ? await postFetch(`/api/likes/like/${item.id}`, {})
+        : await deleteFetch(`/api/likes/unlike/${item.id}`);
+
+      if (!response.ok) {
+        rollback();
+      }
+    } catch (e) {
+      rollback();
     }
   };
 

@@ -1,9 +1,9 @@
-import { useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import { postFetch } from "@/utils/fetchUtils";
 import { Mascot } from "@/components/Mascot";
+import { postFetch } from "@/utils/fetchUtils";
+import { Ionicons } from "@expo/vector-icons";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useState } from "react";
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function ReviewScreen() {
   const { pickupId } = useLocalSearchParams<{ pickupId: string }>();
@@ -11,16 +11,13 @@ export default function ReviewScreen() {
   const [rating, setRating] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [error, setError] = useState("");
 
   const handleSubmit = async () => {
     if (rating === 0) {
-      setError("Vælg venligst en rating");
+      Alert.alert("Vælg venligst en rating");
       return;
     }
-
     setSubmitting(true);
-    setError("");
 
     try {
       const response = await postFetch("/api/reviews", {
@@ -29,7 +26,8 @@ export default function ReviewScreen() {
       });
 
       if (!response.ok) {
-        setError("Noget gik galt – prøv igen");
+        const errorData = await response.json().catch(() => null);
+        Alert.alert(errorData?.message ?? "Kunne ikke sende anmeldelse");
         return;
       }
 
@@ -38,7 +36,7 @@ export default function ReviewScreen() {
         router.back();
       }, 2000);
     } catch (e) {
-      setError("Noget gik galt – prøv igen");
+      Alert.alert("Noget gik galt – prøv igen");
     } finally {
       setSubmitting(false);
     }
@@ -87,8 +85,6 @@ export default function ReviewScreen() {
             </TouchableOpacity>
           ))}
         </View>
-
-        {error ? <Text style={styles.error}>{error}</Text> : null}
 
         <TouchableOpacity
           style={[
