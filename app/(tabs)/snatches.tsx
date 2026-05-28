@@ -1,4 +1,3 @@
-// app/(tabs)/inbox.tsx
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { Mascot } from "@/components/Mascot";
 import { PickupRequest } from "@/interfaces/pickupRequest";
@@ -166,11 +165,13 @@ function ReceivedList() {
     return <LoadingScreen message="Henter dine anmodninger" />;
   }
 
-  const sortedRequests = [...requests].sort((a, b) => {
-    if (a.status === "PENDING" && b.status !== "PENDING") return -1;
-    if (a.status !== "PENDING" && b.status === "PENDING") return 1;
-    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-  });
+  const sortedRequests = [...requests]
+    .filter((req) => req.status !== "COMPLETED")
+    .sort((a, b) => {
+      if (a.status === "PENDING" && b.status !== "PENDING") return -1;
+      if (a.status !== "PENDING" && b.status === "PENDING") return 1;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
 
   if (requests.length === 0) {
     return (
@@ -188,7 +189,6 @@ function ReceivedList() {
       {sortedRequests.map((req) => {
         const isAccepted = req.status === "ACCEPTED";
         const isPending = req.status === "PENDING";
-        const isCompleted = req.status === "COMPLETED";
         const expired = isExpired(req?.expiresAt);
 
         return (
@@ -198,7 +198,6 @@ function ReceivedList() {
               styles.requestCard,
               isAccepted && styles.requestCardAccepted,
               isAccepted && expired && styles.expired,
-              isCompleted && styles.requestCardCompleted,
             ]}
             onPress={() =>
               router.push({
@@ -219,13 +218,11 @@ function ReceivedList() {
               <Text style={styles.requestName}>{req.itemName}</Text>
               <Text style={styles.requestSubtext}>
                 {req.requesterName}{" "}
-                {isCompleted
-                  ? "har afhentet"
-                  : expired
-                    ? "har ikke afhentet"
-                    : isAccepted
-                      ? "afhenter snart"
-                      : "vil gerne afhente"}
+                {expired
+                  ? "har ikke afhentet"
+                  : isAccepted
+                    ? "afhenter snart"
+                    : "vil gerne afhente"}
               </Text>
               <Text style={styles.requestTime}>
                 {isAccepted
@@ -259,11 +256,6 @@ function ReceivedList() {
             {isAccepted && expired && (
               <View style={styles.acceptedBadge}>
                 <Ionicons name="hourglass-outline" size={20} color="#b14343" />
-              </View>
-            )}
-            {isCompleted && (
-              <View style={styles.acceptedBadge}>
-                <Ionicons name="checkmark-circle" size={20} color="#32719b" />
               </View>
             )}
           </TouchableOpacity>
@@ -314,11 +306,13 @@ function SentList() {
     return <LoadingScreen message="Henter dine anmodninger" />;
   }
 
-  const sortedRequests = [...requests].sort((a, b) => {
-    if (a.status === "PENDING" && b.status !== "PENDING") return -1;
-    if (a.status !== "PENDING" && b.status === "PENDING") return 1;
-    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-  });
+  const sortedRequests = [...requests]
+    .filter((req) => req.status !== "COMPLETED")
+    .sort((a, b) => {
+      if (a.status === "PENDING" && b.status !== "PENDING") return -1;
+      if (a.status !== "PENDING" && b.status === "PENDING") return 1;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
 
   if (requests.length === 0) {
     return (
@@ -333,7 +327,6 @@ function SentList() {
     <View style={styles.list}>
       {sortedRequests.map((req) => {
         const isAccepted = req.status === "ACCEPTED";
-        const isCompleted = req.status === "COMPLETED";
         const expired = isExpired(req?.expiresAt);
 
         return (
@@ -343,7 +336,6 @@ function SentList() {
               styles.requestCard,
               isAccepted && styles.requestCardAccepted,
               isAccepted && expired && styles.expired,
-              isCompleted && styles.requestCardCompleted,
             ]}
             onPress={() =>
               router.push({
@@ -363,13 +355,11 @@ function SentList() {
             <View style={styles.requestInfo}>
               <Text style={styles.requestName}>{req.itemName}</Text>
               <Text style={styles.requestSubtext}>
-                {isCompleted
-                  ? "Afhentet"
-                  : expired
-                    ? "Du har ikke afhentet"
-                    : isAccepted
-                      ? "Accepteret"
-                      : "Ikke accepteret endnu"}
+                {expired
+                  ? "Du har ikke afhentet"
+                  : isAccepted
+                    ? "Accepteret"
+                    : "Ikke accepteret endnu"}
               </Text>
               <Text style={styles.requestTime}>
                 {isAccepted
@@ -388,11 +378,6 @@ function SentList() {
             {isAccepted && expired && (
               <View style={styles.acceptedBadge}>
                 <Ionicons name="hourglass-outline" size={20} color="#b14343" />
-              </View>
-            )}
-            {isCompleted && (
-              <View style={styles.acceptedBadge}>
-                <Ionicons name="checkmark-circle" size={20} color="#32719b" />
               </View>
             )}
           </TouchableOpacity>

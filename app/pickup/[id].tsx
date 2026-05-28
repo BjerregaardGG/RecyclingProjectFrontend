@@ -1,3 +1,4 @@
+import InfoTooltip from "@/components/InfoToolTip";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { Mascot } from "@/components/Mascot";
 import { StarRating } from "@/components/StarRating";
@@ -188,7 +189,13 @@ export default function PickupDetailScreen() {
 
       {/* Hoved sektion */}
       <View style={styles.section}>
-        <Text style={styles.name}>{request.itemName}</Text>
+        <View style={styles.toolTip}>
+          <Text style={styles.name}>{request.itemName}</Text>
+          <InfoTooltip
+            title="Timer"
+            text="Begge parter skal acceptere den respektive snatch indenfor 24 timer, ellers vil den blive markeret som ikke afhentet og blive tilgængelig igen."
+          />
+        </View>
 
         {/* Status badge */}
         <View style={styles.statusRow}>
@@ -201,7 +208,7 @@ export default function PickupDetailScreen() {
             ]}
           />
           <Text style={styles.statusText}>
-            {isPending && "Afventer dit svar"}
+            {isPending && "Afventer svar"}
             {isAccepted && "Accepteret"}
             {request.status === "REJECTED" && "Afvist"}
             {request.status === "COMPLETED" && "Afhentet"}
@@ -325,9 +332,15 @@ export default function PickupDetailScreen() {
             </TouchableOpacity>
 
             {isAccepted && !myConfirmation && (
-              <TouchableOpacity style={styles.button} onPress={handleConfirm}>
-                <Text style={styles.buttonText}>Marker som afhentet</Text>
-              </TouchableOpacity>
+              <>
+                <TouchableOpacity style={styles.button} onPress={handleConfirm}>
+                  <Text style={styles.buttonText}>Marker som afhentet</Text>
+                </TouchableOpacity>
+                <Text style={styles.helperText}>
+                  Byttet afsluttes først når begge parter har markeret det som
+                  afhentet
+                </Text>
+              </>
             )}
 
             {isAccepted && myConfirmation && !otherConfirmation && (
@@ -393,6 +406,12 @@ const styles = StyleSheet.create({
     color: "#888",
     marginBottom: 8,
     fontWeight: "500",
+  },
+  toolTip: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginRight: 2,
   },
   name: {
     fontSize: 22,
@@ -570,5 +589,13 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 6,
     paddingTop: 4,
+  },
+  helperText: {
+    fontSize: 12,
+    color: "#888",
+    textAlign: "center",
+    marginTop: 8,
+    paddingHorizontal: 24,
+    lineHeight: 17,
   },
 });

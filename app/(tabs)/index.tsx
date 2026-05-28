@@ -219,9 +219,7 @@ export default function HomeScreen() {
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/*Header*/}
       <View style={styles.header}>
-        <TouchableOpacity>
-          <Ionicons name="menu-outline" size={26} color="#fff" />
-        </TouchableOpacity>
+        <View style={{ width: 26 }} />
         <Text style={styles.headerTitle}>Snatch</Text>
         <TouchableOpacity onPress={() => router.navigate("/inbox")}>
           <Ionicons

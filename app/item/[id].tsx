@@ -127,6 +127,37 @@ export default function ItemScreen() {
     }
   };
 
+  const handleLike = async (item: Item) => {
+    const newLiked = !item.isLikedByCurrentUser;
+    const delta = newLiked ? 1 : -1;
+
+    setItem({
+      ...item,
+      isLikedByCurrentUser: newLiked,
+      likeCount: item.likeCount + delta,
+    });
+
+    const rollback = () => {
+      setItem({
+        ...item,
+        isLikedByCurrentUser: item.isLikedByCurrentUser,
+        likeCount: item.likeCount,
+      });
+    };
+
+    try {
+      const response = newLiked
+        ? await postFetch(`/api/likes/like/${item.id}`, {})
+        : await deleteFetch(`/api/likes/unlike/${item.id}`);
+
+      if (!response.ok) {
+        rollback();
+      }
+    } catch (e) {
+      rollback();
+    }
+  };
+
   if (loading) {
     return <LoadingScreen message="Henter item" />;
   }
@@ -218,7 +249,25 @@ export default function ItemScreen() {
         <Ionicons name="arrow-back-outline" size={24} color="#fff" />
       </TouchableOpacity>
 
-      <Image source={{ uri: item.image }} style={styles.image} />
+      <View style={styles.imageWrapper}>
+        <Image source={{ uri: item.image }} style={styles.image} />
+        <TouchableOpacity
+          style={styles.likeButton}
+          onPress={(e) => {
+            e.stopPropagation();
+            handleLike(item);
+          }}
+        >
+          <Ionicons
+            name={item.isLikedByCurrentUser ? "heart" : "heart-outline"}
+            size={30}
+            color={item.isLikedByCurrentUser ? "#e24b4a" : "#fff"}
+          />
+          {item.likeCount > 0 && (
+            <Text style={styles.likeCount}>{item.likeCount}</Text>
+          )}
+        </TouchableOpacity>
+      </View>
 
       <View style={styles.section}>
         {error ? (
@@ -347,6 +396,26 @@ const styles = StyleSheet.create({
   image: {
     width: "100%",
     height: 300,
+  },
+  imageWrapper: {
+    position: "relative",
+  },
+  likeButton: {
+    position: "absolute",
+    bottom: 15,
+    right: 15,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    borderRadius: 16,
+    paddingVertical: 5,
+    paddingHorizontal: 8,
+  },
+  likeCount: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "600",
   },
   section: {
     backgroundColor: "#fff",

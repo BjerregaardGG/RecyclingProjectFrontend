@@ -208,6 +208,15 @@ export default function registerScreen() {
           </TouchableOpacity>
         </>
       )}
+      <Text style={styles.consentText}>
+        Ved at oprette en konto accepterer du vores{" "}
+        <Text
+          style={styles.link}
+          onPress={() => router.push("/privacy/privacy")}
+        >
+          privatlivspolitik
+        </Text>
+      </Text>
     </View>
   );
 }
@@ -220,6 +229,18 @@ const styles = StyleSheet.create({
     backgroundColor: "#f2f5f0",
     paddingHorizontal: 32,
     gap: 12,
+  },
+  consentText: {
+    fontSize: 13,
+    color: "#888",
+    textAlign: "center",
+    lineHeight: 19,
+    marginTop: 16,
+    paddingHorizontal: 24,
+  },
+  link: {
+    color: "#3a7d3a",
+    fontWeight: "600",
   },
   successTitle: {
     fontSize: 20,

@@ -101,7 +101,6 @@ function NotificationsList() {
     switch (notification.type) {
       case "PICKUP_REQUEST":
       case "REQUEST_ACCEPTED":
-      case "REQUEST_DECLINED":
       case "PICKUP_COMPLETED":
         router.push({
           pathname: "/pickup/[id]",
@@ -272,11 +271,11 @@ function Messages() {
             >
               {con.lastMessageContent ?? "Ingen beskeder endnu"}
             </Text>
-          </View>
-          <View style={styles.messageRight}>
             <Text style={styles.messageTime}>
               {formatRelativeTime(con.lastMessageAt)}
             </Text>
+          </View>
+          <View style={styles.messageRight}>
             <Image source={{ uri: con.itemImage }} style={styles.itemImage} />
           </View>
         </TouchableOpacity>
@@ -444,6 +443,7 @@ const styles = StyleSheet.create({
     color: "#2c2c2c",
   },
   messageTime: {
+    marginTop: 4,
     fontSize: 11,
     color: "#888",
   },

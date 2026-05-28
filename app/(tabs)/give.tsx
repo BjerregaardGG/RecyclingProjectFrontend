@@ -1,3 +1,4 @@
+import InfoTooltip from "@/components/InfoToolTip";
 import { Mascot } from "@/components/Mascot";
 import { Category } from "@/interfaces/category";
 import { pickAndUploadImage } from "@/utils/cloudinaryUtils";
@@ -224,9 +225,16 @@ export default function GiveScreen() {
             />
 
             {/* Address */}
-            <Text style={styles.label}>
-              Afhentningssted <Text style={styles.required}>*</Text>
-            </Text>
+            <View style={styles.labelRow}>
+              <Text style={styles.label}>
+                Afhentningssted <Text style={styles.required}>*</Text>
+              </Text>
+              <InfoTooltip
+                title="Afhentningssted"
+                size={18}
+                text="Denne adresse er ikke offentlig tilgængelig, medmindre du acceptterer en brugers anmodning. Når du har accepteret en anmodning, så vil den specifikke bruger automatisk få adgang til at se afheningsadressen."
+              />
+            </View>
             <TextInput
               style={styles.input}
               placeholder="Begynd at skrive adressen..."
@@ -368,6 +376,12 @@ const styles = StyleSheet.create({
     color: "#888",
     marginBottom: 6,
     marginLeft: 4,
+  },
+  labelRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginRight: 2,
   },
   input: {
     backgroundColor: "#fff",

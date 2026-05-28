@@ -222,6 +222,23 @@ export default function ProfileScreen() {
               style={styles.menuItem}
               onPress={() => {
                 setMenuOpen(false);
+                router.push("/privacy/privacy");
+              }}
+            >
+              <Ionicons
+                name="shield-checkmark-outline"
+                size={18}
+                color="#3a7d3a"
+              />
+              <Text style={[styles.menuItemText, { color: "#3a7d3a" }]}>
+                Privatlivspolitik
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => {
+                setMenuOpen(false);
                 handleLogout(router);
               }}
             >
