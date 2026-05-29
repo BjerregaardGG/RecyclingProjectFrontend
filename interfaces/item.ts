@@ -12,4 +12,5 @@ export interface Item {
   reservedAt: string | null;
   likeCount: number;
   isLikedByCurrentUser: boolean;
+  hasActiveRequest: boolean;
 }

@@ -1,3 +1,4 @@
+// This is the edit profile page
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { User } from "@/interfaces/user";
 import { getFetch, patchFetch } from "@/utils/fetchUtils";
@@ -112,6 +113,7 @@ export default function EditProfileScreen() {
 
       router.back();
     } catch (e) {
+      console.log(e);
       Alert.alert("Noget gik galt – prøv igen");
     } finally {
       setSaving(false);
@@ -229,11 +231,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f2f5f0",
-  },
-  centered: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
   },
   header: {
     backgroundColor: "#3a7d3a",

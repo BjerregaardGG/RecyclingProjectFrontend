@@ -1,3 +1,4 @@
+// This is the login page
 import { Mascot } from "@/components/Mascot";
 import { postFetch } from "@/utils/fetchUtils";
 import { Ionicons } from "@expo/vector-icons";
@@ -33,6 +34,7 @@ export default function LoginScreen() {
       await AsyncStorage.setItem("token", data.token);
       router.replace("/(tabs)");
     } catch (error) {
+      console.log(error);
       setError("Noget gik galt – prøv igen");
     }
   };

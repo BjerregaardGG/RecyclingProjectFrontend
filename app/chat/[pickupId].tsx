@@ -1,3 +1,4 @@
+// This is the individual chat page for each ongoing request
 import { useChat } from "@/hooks/useChat";
 import { Message } from "@/interfaces/message";
 import { User } from "@/interfaces/user";
@@ -38,7 +39,7 @@ export default function ChatScreen() {
   }>();
   const router = useRouter();
   const flatListRef = useRef<FlatList>(null);
-  const { messages, connected, loading, sendMessage } = useChat(
+  const { messages, loading, sendMessage } = useChat(
     pickupId ? Number(pickupId) : null,
   );
   const [text, setText] = useState("");
@@ -246,11 +247,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#fff",
     fontWeight: "600",
-  },
-  headerStatus: {
-    fontSize: 11,
-    color: "#c8e6c9",
-    marginTop: 2,
   },
   secondHeader: {
     backgroundColor: "#0b6317",

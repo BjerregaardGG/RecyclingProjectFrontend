@@ -1,3 +1,4 @@
+// This is the register page
 import { Mascot } from "@/components/Mascot";
 import {
   verifyEmail,
@@ -17,7 +18,7 @@ import {
   View,
 } from "react-native";
 
-export default function registerScreen() {
+export default function RegisterScreen() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
@@ -28,8 +29,8 @@ export default function registerScreen() {
   const [error, setError] = useState("");
   const [cityQuery, setCityQuery] = useState("");
   const [postalCodes, setPostalCodes] = useState<PostalCode[]>([]);
-  const [selectedCity, setSelectedCity] = useState<String | null>(null);
-  const [selectedPostalCode, setSelectedPostalcode] = useState<String | null>(
+  const [selectedCity, setSelectedCity] = useState<string | null>(null);
+  const [selectedPostalCode, setSelectedPostalcode] = useState<string | null>(
     null,
   );
   const [showSuccess, setShowSuccess] = useState(false);
@@ -77,6 +78,7 @@ export default function registerScreen() {
 
       setShowSuccess(true);
     } catch (error) {
+      console.log(error);
       setError("Noget gik galt – prøv igen");
     }
   };

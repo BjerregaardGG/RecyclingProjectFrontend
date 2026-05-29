@@ -1,13 +1,13 @@
+import { Notification } from "@/interfaces/notification";
+import { getFetch, patchFetch } from "@/utils/fetchUtils";
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useState,
-  useCallback,
 } from "react";
 import { AppState } from "react-native";
-import { getFetch, patchFetch } from "@/utils/fetchUtils";
-import { Notification } from "@/interfaces/notification";
 
 type NotificationContextType = {
   notifications: Notification[];
@@ -37,14 +37,15 @@ export function NotificationProvider({
       const response = await getFetch("/api/notifications/me");
       if (!response.ok) return;
       const data = await response.json();
-      console.log(data);
       setNotifications(data);
-    } catch (e) {}
+    } catch (e) {
+      console.log(e);
+    }
   }, []);
 
   const markAllAsRead = useCallback(async () => {
     try {
-      await patchFetch("/api/notifications/me/read");
+      await patchFetch("/api/notifications/me/read", {});
       setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
     } catch (e) {
       console.log(e);

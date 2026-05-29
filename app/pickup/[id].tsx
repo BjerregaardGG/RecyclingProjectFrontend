@@ -1,3 +1,4 @@
+// This is the individual snatch request page
 import InfoTooltip from "@/components/InfoToolTip";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { Mascot } from "@/components/Mascot";
@@ -92,6 +93,7 @@ export default function PickupDetailScreen() {
       const updated = await response.json();
       setRequest(updated);
     } catch (error) {
+      console.log(error);
       Alert.alert("Noget gik galt – prøv igen");
     }
   };
@@ -120,6 +122,7 @@ export default function PickupDetailScreen() {
               }
               router.back();
             } catch (error) {
+              console.log(error);
               Alert.alert("Noget gik galt – prøv igen");
             }
           },
@@ -140,6 +143,7 @@ export default function PickupDetailScreen() {
       const data = await response.json();
       setRequest(data);
     } catch (error) {
+      console.log(error);
       Alert.alert("Noget gik galt – prøv igen");
     }
   };
@@ -489,10 +493,6 @@ const styles = StyleSheet.create({
     color: "#2c2c2c",
     fontWeight: "500",
   },
-  requestTime: {
-    fontSize: 12,
-    color: "#888",
-  },
   locationRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -519,26 +519,10 @@ const styles = StyleSheet.create({
   buttonReject: {
     backgroundColor: "#e24b4a",
   },
-  buttonSecondary: {
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#3a7d3a",
-  },
   buttonText: {
     color: "#fff",
     fontSize: 15,
     fontWeight: "500",
-  },
-  buttonTextSecondary: {
-    color: "#3a7d3a",
-    fontSize: 15,
-    fontWeight: "500",
-  },
-  error: {
-    color: "#e24b4a",
-    fontSize: 13,
-    textAlign: "center",
-    marginBottom: 12,
   },
   waitingBox: {
     flexDirection: "row",
@@ -555,22 +539,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#888",
     fontWeight: "500",
-  },
-  completedBox: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    backgroundColor: "#f0f7f0",
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: "#3a7d3a",
-  },
-  completedText: {
-    fontSize: 14,
-    color: "#3a7d3a",
-    fontWeight: "600",
   },
   completedState: {
     alignItems: "center",

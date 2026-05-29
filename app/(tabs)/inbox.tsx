@@ -1,3 +1,4 @@
+// This is the tab for inbox (Messages - Notifications)
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { Mascot } from "@/components/Mascot";
 import { useNotifications } from "@/contexts/NotificationContexts";
@@ -116,6 +117,14 @@ function NotificationsList() {
           params: {
             id: notification.relatedId.toString(),
             pickupId: notification.relatedId.toString(),
+          },
+        });
+        break;
+      case "INCOMING_REVIEW":
+        router.push({
+          pathname: "/reviews/[userId]",
+          params: {
+            userId: notification.userId.toString(),
           },
         });
         break;
@@ -388,24 +397,6 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: "#3a7d3a",
   },
-  tabLabel: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  tabBadge: {
-    backgroundColor: "#e24b4a",
-    borderRadius: 10,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    minWidth: 20,
-    alignItems: "center",
-  },
-  tabBadgeText: {
-    color: "#fff",
-    fontSize: 11,
-    fontWeight: "500",
-  },
   messageCard: {
     flexDirection: "row",
     backgroundColor: "#fff",
@@ -415,13 +406,6 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     borderWidth: 0.5,
     borderColor: "#e0e0e0",
-  },
-  messageImage: {
-    marginTop: 8,
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: "#eee",
   },
   itemImage: {
     width: 48,

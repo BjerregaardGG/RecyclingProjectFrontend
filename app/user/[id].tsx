@@ -1,3 +1,4 @@
+// This is the user page
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { Mascot } from "@/components/Mascot";
 import { StarRating } from "@/components/StarRating";
@@ -125,10 +126,21 @@ export default function UserScreen() {
             )}
           </View>
 
-          <View style={styles.profileRatingRow}>
-            <StarRating rating={average} size={13} />
-            <Text style={styles.profileMetaText}>({reviewCount})</Text>
-          </View>
+          {userData && (
+            <TouchableOpacity
+              onPress={() =>
+                router.push({
+                  pathname: "/reviews/[userId]",
+                  params: { userId: userData?.id.toString() },
+                })
+              }
+            >
+              <View style={styles.profileRatingRow}>
+                <StarRating rating={average} size={13} />
+                <Text style={styles.profileMetaText}>({reviewCount})</Text>
+              </View>
+            </TouchableOpacity>
+          )}
 
           {userData?.city && (
             <View style={styles.profileLocationRow}>
@@ -201,12 +213,6 @@ const styles = StyleSheet.create({
   backButton: {
     width: 24,
     alignItems: "center",
-  },
-  headerTitle: {
-    fontSize: 16,
-    fontWeight: "500",
-    color: "#fff",
-    letterSpacing: 2,
   },
   headerSpacer: {
     width: 24,

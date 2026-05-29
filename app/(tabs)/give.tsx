@@ -1,3 +1,4 @@
+// This is the tab for uploading snatches 
 import InfoTooltip from "@/components/InfoToolTip";
 import { Mascot } from "@/components/Mascot";
 import { Category } from "@/interfaces/category";
@@ -30,7 +31,6 @@ export default function GiveScreen() {
     null,
   );
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const [addreessQuery, setAddressQuery] = useState("");
@@ -140,6 +140,7 @@ export default function GiveScreen() {
 
       setShowSuccess(true);
     } catch (error) {
+      console.log(error);
       Alert.alert("Noget gik galt – prøv igen");
     } finally {
       setLoading(false);
@@ -167,7 +168,6 @@ export default function GiveScreen() {
 
           <View style={styles.content}>
             {error ? <Text style={styles.error}>{error}</Text> : null}
-            {success ? <Text style={styles.success}>{success}</Text> : null}
 
             {/* Image upload */}
             <TouchableOpacity
@@ -437,12 +437,6 @@ const styles = StyleSheet.create({
   },
   error: {
     color: "#e24b4a",
-    fontSize: 13,
-    textAlign: "center",
-    marginBottom: 12,
-  },
-  success: {
-    color: "#3a7d3a",
     fontSize: 13,
     textAlign: "center",
     marginBottom: 12,

@@ -1,3 +1,4 @@
+// This is the forgot password page (email verification)
 import { Mascot } from "@/components/Mascot";
 import { verifyEmail } from "@/utils/authUtils";
 import { useRouter } from "expo-router";
@@ -178,12 +179,6 @@ const styles = StyleSheet.create({
   },
   error: {
     color: "#e24b4a",
-    fontSize: 13,
-    textAlign: "center",
-    marginBottom: 12,
-  },
-  success: {
-    color: "#3a7d3a",
     fontSize: 13,
     textAlign: "center",
     marginBottom: 12,

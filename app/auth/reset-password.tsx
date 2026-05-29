@@ -1,3 +1,5 @@
+// This is the reset password page that the user will be redirected to
+// after clicking the reset link from mail
 import {
   verifyPassword,
   verifyfirstAndSecondPassword,
@@ -18,7 +20,6 @@ export default function ResetPasswordScreen() {
   const [password, setPassword] = useState("");
   const [secondPassword, setSecondPassword] = useState("");
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
 
   const handleResetPassword = async () => {
     if (!verifyPassword(password, setError)) return;
@@ -39,6 +40,7 @@ export default function ResetPasswordScreen() {
       setTimeout(() => router.replace("/auth/login"), 2000);
       setError("");
     } catch (error) {
+      console.log(error);
       setError("Noget gik galt – prøv igen");
     }
   };
@@ -49,7 +51,6 @@ export default function ResetPasswordScreen() {
       <Text style={styles.subtitle}>Indtast dit nye password</Text>
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
-      {success ? <Text style={styles.success}>{success}</Text> : null}
 
       <TextInput
         style={styles.input}
@@ -124,12 +125,6 @@ const styles = StyleSheet.create({
   },
   error: {
     color: "#e24b4a",
-    fontSize: 13,
-    textAlign: "center",
-    marginBottom: 12,
-  },
-  success: {
-    color: "#3a7d3a",
     fontSize: 13,
     textAlign: "center",
     marginBottom: 12,

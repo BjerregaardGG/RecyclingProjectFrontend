@@ -1,3 +1,4 @@
+// This is the profile tab
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { Mascot } from "@/components/Mascot";
 import { StarRating } from "@/components/StarRating";
@@ -159,6 +160,7 @@ export default function ProfileScreen() {
       }
       setUserData((prev) => (prev ? { ...prev, image: url } : prev));
     } catch (error) {
+      console.log(error);
       Alert.alert("Noget gik galt - prøv igen");
     } finally {
       setLoading(false);
@@ -215,6 +217,22 @@ export default function ProfileScreen() {
               <Ionicons name="heart" size={18} color="#2c2c2c" />
               <Text style={styles.menuItemText}>Likede opslag</Text>
             </TouchableOpacity>
+
+            {userData && (
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => {
+                  setMenuOpen(false);
+                  router.push({
+                    pathname: "/reviews/[userId]",
+                    params: { userId: userData?.id.toString() },
+                  });
+                }}
+              >
+                <Ionicons name="star" size={18} color="#2c2c2c" />
+                <Text style={styles.menuItemText}>Anmeldelser</Text>
+              </TouchableOpacity>
+            )}
 
             <View style={styles.menuDivider} />
 
@@ -283,10 +301,21 @@ export default function ProfileScreen() {
             )}
           </View>
 
-          <View style={styles.profileRatingRow}>
-            <StarRating rating={average} size={13} />
-            <Text style={styles.profileMetaText}>({reviewCount})</Text>
-          </View>
+          {userData && (
+            <TouchableOpacity
+              onPress={() =>
+                router.push({
+                  pathname: "/reviews/[userId]",
+                  params: { userId: userData?.id.toString() },
+                })
+              }
+            >
+              <View style={styles.profileRatingRow}>
+                <StarRating rating={average} size={13} />
+                <Text style={styles.profileMetaText}>({reviewCount})</Text>
+              </View>
+            </TouchableOpacity>
+          )}
 
           {userData?.city && (
             <View style={styles.profileLocationRow}>
@@ -431,10 +460,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f2f5f0",
-  },
-  image: {
-    width: "100%",
-    height: "100%",
   },
   headerTitle: {
     fontSize: 16,

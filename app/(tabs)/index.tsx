@@ -1,3 +1,4 @@
+// This is the front page tab
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { Mascot } from "@/components/Mascot";
 import { useNotifications } from "@/contexts/NotificationContexts";
@@ -207,6 +208,7 @@ export default function HomeScreen() {
         rollback();
       }
     } catch (e) {
+      console.log(e);
       rollback();
     }
   };
@@ -409,21 +411,6 @@ const styles = StyleSheet.create({
     color: "#fff",
     letterSpacing: 2,
   },
-  avatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#c8e6c9",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 2,
-    borderColor: "#fff",
-  },
-  avatarText: {
-    fontSize: 11,
-    fontWeight: "500",
-    color: "#2e7d32",
-  },
   searchWrapper: {
     backgroundColor: "#fff",
     marginHorizontal: 16,
@@ -483,32 +470,6 @@ const styles = StyleSheet.create({
   },
   pillTextActive: {
     color: "#fff",
-  },
-  rangeWrapper: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 8,
-  },
-  rangeLabel: {
-    fontSize: 13,
-    fontWeight: "500",
-    color: "#3a7d3a",
-  },
-  rangeValue: {
-    fontSize: 12,
-    color: "#3a7d3a",
-    fontWeight: "500",
-  },
-  track: {
-    height: 4,
-    backgroundColor: "#e0e0e0",
-    borderRadius: 4,
-    marginBottom: 20,
-  },
-  trackFill: {
-    height: "100%",
-    backgroundColor: "#3a7d3a",
-    borderRadius: 4,
   },
   grid: {
     flexDirection: "row",

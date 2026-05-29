@@ -1,3 +1,4 @@
+// This is the individual item page
 import InfoTooltip from "@/components/InfoToolTip";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { Mascot } from "@/components/Mascot";
@@ -27,7 +28,6 @@ export default function ItemScreen() {
   const [loggedInUserData, setLoggedInUserData] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [average, setAverage] = useState(0);
 
   useFocusEffect(
@@ -106,9 +106,10 @@ export default function ItemScreen() {
         setError(errorData?.message ?? "Kunne ikke sende anmodning");
         return;
       }
-      setSuccess("Du er nu i kø til denne snatch!");
+      setItem((prev) => (prev ? { ...prev, hasActiveRequest: true } : prev));
       setError("");
     } catch (error) {
+      console.log(error);
       setError("Noget gik galt – prøv igen");
     }
   };
@@ -123,6 +124,7 @@ export default function ItemScreen() {
       }
       router.replace("/(tabs)");
     } catch (error) {
+      console.log(error);
       Alert.alert("Noget gik galt – prøv igen");
     }
   };
@@ -154,6 +156,7 @@ export default function ItemScreen() {
         rollback();
       }
     } catch (e) {
+      console.log(e);
       rollback();
     }
   };
@@ -189,6 +192,15 @@ export default function ItemScreen() {
   const renderButton = () => {
     const isOwner = item.userId === loggedInUserData.id;
     const status = item.status;
+
+    if (!isOwner && item.hasActiveRequest) {
+      return (
+        <View style={styles.statusBox}>
+          <Ionicons name="time-outline" size={20} color="#888" />
+          <Text style={styles.statusText}>Du er i kø</Text>
+        </View>
+      );
+    }
 
     if (isOwner && status === "AVAILABLE") {
       return (
@@ -274,12 +286,6 @@ export default function ItemScreen() {
           <View style={styles.stateView}>
             <Mascot mood="happy" size={160} />
             <Text style={styles.stateText}>{error}</Text>
-          </View>
-        ) : null}
-        {success ? (
-          <View style={styles.stateView}>
-            <Mascot mood="excited" size={160} />
-            <Text style={styles.stateText}>{success}</Text>
           </View>
         ) : null}
 
@@ -443,23 +449,12 @@ const styles = StyleSheet.create({
     color: "#888",
     marginBottom: 4,
   },
-  distanceRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
   dot: {
     width: 8,
     height: 8,
     borderRadius: 4,
     marginLeft: 3,
     backgroundColor: "#3a7d3a",
-  },
-  dotGray: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "#8a8a8a",
   },
   distance: {
     fontSize: 13,
@@ -538,22 +533,10 @@ const styles = StyleSheet.create({
     gap: 12,
     marginTop: 12,
   },
-  error: {
-    color: "#e24b4a",
-    fontSize: 13,
-    textAlign: "center",
-    marginBottom: 12,
-  },
   avatarImage: {
     width: "100%",
     height: "100%",
     borderRadius: 100,
-  },
-  success: {
-    color: "#3a7d3a",
-    fontSize: 13,
-    textAlign: "center",
-    marginBottom: 12,
   },
   statusBox: {
     flexDirection: "row",

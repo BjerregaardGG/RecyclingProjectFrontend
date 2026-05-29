@@ -1,3 +1,4 @@
+// This is the tab viewing incoming and outgoing snatch requests
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { Mascot } from "@/components/Mascot";
 import { PickupRequest } from "@/interfaces/pickupRequest";
@@ -125,6 +126,7 @@ function ReceivedList() {
         ),
       );
     } catch (error) {
+      console.log(error);
       Alert.alert("Noget gik galt - prøv igen");
     }
   };
@@ -153,6 +155,7 @@ function ReceivedList() {
               }
               setRequests((prev) => prev.filter((req) => req.id !== id));
             } catch (error) {
+              console.log(error);
               Alert.alert("Noget gik galt – prøv igen");
             }
           },
@@ -450,11 +453,6 @@ const styles = StyleSheet.create({
     borderColor: "#3a7d3a",
     borderWidth: 1,
   },
-  requestCardCompleted: {
-    backgroundColor: "#f0f7f0",
-    borderColor: "#32719b",
-    borderWidth: 1,
-  },
   expired: {
     backgroundColor: "#f0f7f0",
     borderColor: "#b14343",
@@ -467,19 +465,6 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 10,
   },
-  empty: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 80,
-    gap: 12,
-  },
-  loadingText: {
-    textAlign: "center",
-    paddingVertical: 40,
-    color: "#888",
-  },
-
-  /* Request card */
   requestCard: {
     flexDirection: "row",
     backgroundColor: "#fff",

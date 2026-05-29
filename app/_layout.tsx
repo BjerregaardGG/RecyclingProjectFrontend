@@ -14,6 +14,7 @@ export default function RootLayout() {
         <Stack.Screen name="review" options={{ headerShown: false }} />
         <Stack.Screen name="profile" options={{ headerShown: false }} />
         <Stack.Screen name="privacy" options={{ headerShown: false }} />
+        <Stack.Screen name="reviews" options={{ headerShown: false }} />
       </Stack>
       <StatusBar style="auto" />
     </>

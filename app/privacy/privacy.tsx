@@ -1,3 +1,4 @@
+// This is the privacy policy page
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import {
@@ -227,15 +228,5 @@ const styles = StyleSheet.create({
     color: "#3a7d3a",
     fontWeight: "600",
     marginTop: 4,
-  },
-  disclaimer: {
-    fontSize: 12,
-    color: "#999",
-    fontStyle: "italic",
-    lineHeight: 18,
-    marginTop: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: "#e0e0e0",
   },
 });

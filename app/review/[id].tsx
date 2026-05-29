@@ -1,3 +1,4 @@
+// This is the 'give review' page, which the user can enter once the request is successfull
 import { Mascot } from "@/components/Mascot";
 import { postFetch } from "@/utils/fetchUtils";
 import { Ionicons } from "@expo/vector-icons";
@@ -36,6 +37,7 @@ export default function ReviewScreen() {
         router.back();
       }, 2000);
     } catch (e) {
+      console.log(e);
       Alert.alert("Noget gik galt – prøv igen");
     } finally {
       setSubmitting(false);
@@ -151,19 +153,6 @@ const styles = StyleSheet.create({
   },
   starButton: {
     padding: 4,
-  },
-  ratingLabel: {
-    fontSize: 16,
-    fontWeight: "500",
-    color: "#3a7d3a",
-    marginBottom: 32,
-    minHeight: 24,
-  },
-  error: {
-    color: "#e24b4a",
-    fontSize: 13,
-    marginBottom: 16,
-    textAlign: "center",
   },
   button: {
     backgroundColor: "#3a7d3a",
