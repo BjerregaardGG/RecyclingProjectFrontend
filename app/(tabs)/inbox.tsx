@@ -99,6 +99,7 @@ function NotificationsList() {
   const handleTap = (notification: (typeof notifications)[number]) => {
     if (!notification.relatedId) return;
 
+    // Route based on notification type
     switch (notification.type) {
       case "PICKUP_REQUEST":
       case "REQUEST_ACCEPTED":
@@ -142,6 +143,7 @@ function NotificationsList() {
 
   return (
     <View style={styles.list}>
+      {/*Notification list*/}
       {visibleNotifications.map((n) => (
         <TouchableOpacity
           key={n.id}
@@ -171,6 +173,7 @@ function NotificationsList() {
   );
 }
 
+// Creates icon based on notification type
 function getIconForType(type: string): keyof typeof Ionicons.glyphMap {
   switch (type) {
     case "PICKUP_REQUEST":
@@ -238,6 +241,7 @@ function Messages() {
 
   return (
     <View style={styles.list}>
+      {/*Conversation list*/}
       {conversations.map((con) => (
         <TouchableOpacity
           key={con.pickupId}

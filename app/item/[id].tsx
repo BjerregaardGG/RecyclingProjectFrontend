@@ -189,6 +189,7 @@ export default function ItemScreen() {
     );
   }
 
+  // Creates the button based on status
   const renderButton = () => {
     const isOwner = item.userId === loggedInUserData.id;
     const status = item.status;
@@ -261,6 +262,7 @@ export default function ItemScreen() {
         <Ionicons name="arrow-back-outline" size={24} color="#fff" />
       </TouchableOpacity>
 
+      {/* Image */}
       <View style={styles.imageWrapper}>
         <Image source={{ uri: item.image }} style={styles.image} />
         <TouchableOpacity
@@ -293,11 +295,13 @@ export default function ItemScreen() {
         <Text style={styles.secondDescription}>{item.secondDescription}</Text>
       </View>
 
+      {/* Descrpition  */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Beskrivelse</Text>
         <Text style={styles.description}>{item.description}</Text>
       </View>
 
+      {/* City (no adress) */}
       <View style={styles.section}>
         <InfoTooltip
           sectionTitle="Afhentningssted"
@@ -326,6 +330,7 @@ export default function ItemScreen() {
         )}
       </View>
 
+      {/* User section */}
       <TouchableOpacity
         onPress={() => {
           if (loggedInUserData.id === item.userId) {

@@ -48,7 +48,7 @@ export default function ForgotPasswordScreen() {
       setShowSuccess(true);
       setError("");
     } catch (error) {
-      console.log("Catch fejl:", error);
+      console.log(error);
       setError("Noget gik galt – prøv igen");
     }
   };

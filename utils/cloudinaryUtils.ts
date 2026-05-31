@@ -1,3 +1,4 @@
+// cloudinaryUtils - used for uploading images
 import * as ImagePicker from "expo-image-picker";
 
 export async function pickAndUploadImage(): Promise<string | null> {
@@ -25,7 +26,7 @@ export async function pickAndUploadImage(): Promise<string | null> {
 
   if (result.canceled) return null;
 
-  // Upload to Cloudinary
+  // Creates the image object
   const formData = new FormData();
   formData.append("file", {
     uri: result.assets[0].uri,
@@ -37,6 +38,7 @@ export async function pickAndUploadImage(): Promise<string | null> {
     process.env.EXPO_PUBLIC_CLOUDINARY_UPLOAD_PRESET!,
   );
 
+  // Upload to Cloudinary (extern image server)
   const response = await fetch(
     `https://api.cloudinary.com/v1_1/${process.env.EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
     {

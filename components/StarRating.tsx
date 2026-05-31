@@ -1,5 +1,6 @@
-import { View } from "react-native";
+// StarRating component
 import { Ionicons } from "@expo/vector-icons";
+import { View } from "react-native";
 
 type RatingProps = {
   rating: number;

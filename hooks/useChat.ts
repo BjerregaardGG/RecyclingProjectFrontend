@@ -1,3 +1,8 @@
+/* useChat hook - custom hook that handles all of the chat functionality 
+1. Collects chat history 
+2. Sets up a webSocket connection 
+3. Listens to new messages and adds them to the state 
+*/
 import { Message } from "@/interfaces/message";
 import { getFetch, patchFetch } from "@/utils/fetchUtils";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -19,6 +24,7 @@ export function useChat(pickupId: number | null) {
     let isActive = true;
 
     const setup = async () => {
+      // We collect all the messages through HTTP
       try {
         const response = await getFetch(`/api/messages/pickup/${pickupId}`);
         if (response.ok) {
@@ -31,26 +37,24 @@ export function useChat(pickupId: number | null) {
         if (isActive) setLoading(false);
       }
 
+      // We mark all messages as read through HTTP
       try {
         await patchFetch(`/api/messages/pickup/${pickupId}/mark-as-read`, {});
       } catch (error) {
         console.error("Could not mark as read:", error);
       }
 
-      // Create web socket connection
+      // Creates the webSocket setup
       const token = await AsyncStorage.getItem("token");
       if (!token) return;
-
       const wsUrl = `${process.env.EXPO_PUBLIC_API_URL}/ws?token=${encodeURIComponent(token)}`;
 
-      console.log("Connecting to:", wsUrl);
-
+      // Establishes the webSocket connection
       const client = new Client({
         webSocketFactory: () => new SockJS(wsUrl),
         reconnectDelay: 5000,
 
         onConnect: () => {
-          console.log("WS Connected!");
           if (!isActive) return;
           setConnected(true);
 
@@ -59,22 +63,6 @@ export function useChat(pickupId: number | null) {
             const newMessage: Message = JSON.parse(msg.body);
             setMessages((prev) => [...prev, newMessage]);
           });
-        },
-
-        beforeConnect: () => {
-          console.log("STOMP: Before connect");
-        },
-
-        onWebSocketClose: (event) => {
-          console.log("WS Closed:", event.code, event.reason);
-        },
-
-        onWebSocketError: (event) => {
-          console.log("WS Error:", event);
-        },
-
-        debug: (str) => {
-          console.log("STOMP:", str);
         },
 
         onDisconnect: () => {
@@ -86,6 +74,7 @@ export function useChat(pickupId: number | null) {
         },
       });
 
+      // Starts the connections
       client.activate();
       clientRef.current = client;
     };

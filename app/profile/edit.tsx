@@ -139,11 +139,11 @@ export default function EditProfileScreen() {
           <View style={{ width: 24 }} />
         </View>
 
-        {/* Form */}
+        {/* Edit user form */}
         <View style={styles.content}>
           {error ? <Text style={styles.error}>{error}</Text> : null}
 
-          {/* Navn */}
+          {/* Name */}
           <View style={styles.field}>
             <Text style={styles.label}>
               Navn <Text style={styles.required}>*</Text>
@@ -158,7 +158,7 @@ export default function EditProfileScreen() {
             />
           </View>
 
-          {/* By / postnummer */}
+          {/* City/Postalcode */}
           <View style={styles.field}>
             <Text style={styles.label}>
               By <Text style={styles.required}>*</Text>

@@ -33,6 +33,7 @@ export default function ReviewsScreen() {
   });
   const [loading, setLoading] = useState(true);
   const [loggedInUserData, setLoggedInUserData] = useState<User | null>(null);
+  const [reviewedUser, setReviewedUser] = useState<User | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -43,7 +44,12 @@ export default function ReviewsScreen() {
   const loadAllData = async () => {
     setLoading(true);
     try {
-      await Promise.all([fetchReviews(), fetchRating(), fetchLoggedInUser()]);
+      await Promise.all([
+        fetchReviews(),
+        fetchRating(),
+        fetchLoggedInUser(),
+        fetchReviewedUser(),
+      ]);
     } catch (e) {
       console.log(e);
     } finally {
@@ -84,12 +90,24 @@ export default function ReviewsScreen() {
     }
   };
 
+  const fetchReviewedUser = async () => {
+    try {
+      const response = await getFetch(`/api/users/${userId}`);
+      if (!response.ok) return;
+      const data = await response.json();
+      setReviewedUser(data);
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
   if (loading) {
     return <LoadingScreen message="Henter anmeldelser" />;
   }
 
   return (
     <View style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => router.back()}
@@ -101,8 +119,22 @@ export default function ReviewsScreen() {
         <View style={{ width: 38 }} />
       </View>
 
+      {/* Review stats and image */}
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.summary}>
+          <View style={styles.summaryAvatar}>
+            {reviewedUser?.image ? (
+              <Image
+                source={{ uri: reviewedUser.image }}
+                style={styles.summaryAvatarImage}
+              />
+            ) : (
+              <Text style={styles.summaryAvatarText}>
+                {reviewedUser?.name?.substring(0, 1).toUpperCase()}
+              </Text>
+            )}
+          </View>
+
           <Text style={styles.averageNumber}>
             {rating.averageRating.toFixed(1)}
           </Text>
@@ -113,6 +145,7 @@ export default function ReviewsScreen() {
           </Text>
         </View>
 
+        {/* All reviews */}
         {reviews.length === 0 ? (
           <View style={styles.emptyState}>
             <Mascot mood="sad" size={160} />
@@ -192,6 +225,25 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "600",
     color: "#fff",
+  },
+  summaryAvatar: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "#3a7d3a",
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+    marginBottom: 6,
+  },
+  summaryAvatarImage: {
+    width: "100%",
+    height: "100%",
+  },
+  summaryAvatarText: {
+    color: "#fff",
+    fontSize: 28,
+    fontWeight: "600",
   },
   content: {
     padding: 16,

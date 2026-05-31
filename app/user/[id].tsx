@@ -99,8 +99,8 @@ export default function UserScreen() {
         <View style={styles.headerSpacer} />
       </View>
 
+      {/* Profile Section */}
       <View style={styles.profileCard}>
-        {/* Billede */}
         {userData?.image ? (
           <Image
             source={{ uri: userData.image }}
@@ -115,7 +115,6 @@ export default function UserScreen() {
           </View>
         )}
 
-        {/* Info */}
         <View style={styles.profileInfo}>
           <View style={styles.profileNameRow}>
             <Text style={styles.profileName}>{userData?.name}</Text>
@@ -157,8 +156,8 @@ export default function UserScreen() {
         </View>
       </View>
 
+      {/* Items */}
       <View style={styles.content}>
-        {/* Items */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionLabel}>Opslag ({items.length})</Text>
         </View>

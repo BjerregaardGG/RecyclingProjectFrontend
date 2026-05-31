@@ -164,7 +164,7 @@ export default function ChatScreen() {
         </Text>
       </TouchableOpacity>
 
-      {/* Beskeder */}
+      {/* Messages */}
       {loading ? (
         <View style={styles.centered}>
           <Text>Indlæser...</Text>

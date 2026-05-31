@@ -23,7 +23,6 @@ import {
 } from "react-native";
 
 type Tab = "received" | "sent";
-// forces re-render every minute so that time remaining updates
 
 export default function InboxScreen() {
   const [activeTab, setActiveTab] = useState<Tab>("received");
@@ -176,7 +175,7 @@ function ReceivedList() {
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
 
-  if (requests.length === 0) {
+  if (sortedRequests.length === 0) {
     return (
       <View style={styles.emptyState}>
         <Mascot mood="sad" size={160} />
@@ -189,6 +188,7 @@ function ReceivedList() {
 
   return (
     <View style={styles.list}>
+      {/* Recieved requests */}
       {sortedRequests.map((req) => {
         const isAccepted = req.status === "ACCEPTED";
         const isPending = req.status === "PENDING";
@@ -212,6 +212,7 @@ function ReceivedList() {
               })
             }
           >
+            {/* Request info */}
             <Image
               source={{ uri: req.itemImage }}
               style={styles.requestImage}
@@ -234,6 +235,7 @@ function ReceivedList() {
               </Text>
             </View>
 
+            {/* Handle snatch (based on pending status) */}
             {isPending && (
               <View style={styles.requestActions}>
                 <TouchableOpacity
@@ -317,7 +319,7 @@ function SentList() {
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
 
-  if (requests.length === 0) {
+  if (sortedRequests.length === 0) {
     return (
       <View style={styles.emptyState}>
         <Mascot mood="sad" size={160} />
@@ -328,6 +330,7 @@ function SentList() {
 
   return (
     <View style={styles.list}>
+      {/* Sent requests */}
       {sortedRequests.map((req) => {
         const isAccepted = req.status === "ACCEPTED";
         const expired = isExpired(req?.expiresAt);
@@ -355,6 +358,7 @@ function SentList() {
               style={styles.requestImage}
             />
 
+            {/* Requests info */}
             <View style={styles.requestInfo}>
               <Text style={styles.requestName}>{req.itemName}</Text>
               <Text style={styles.requestSubtext}>

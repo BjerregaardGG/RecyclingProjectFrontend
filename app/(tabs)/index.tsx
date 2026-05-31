@@ -67,6 +67,7 @@ export default function HomeScreen() {
       result = result.filter((item) => item.category === selectedCategory);
     }
 
+    // Filter items based on user search query
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       result = result.filter(
@@ -76,6 +77,7 @@ export default function HomeScreen() {
       );
     }
 
+    // Filter items based on user location
     if (userLocation) {
       result = [...result].sort((a, b) => {
         if (!a.latitude || !a.longitude) return 1;
@@ -114,6 +116,7 @@ export default function HomeScreen() {
     });
   };
 
+  // Used in getUSerLocation()
   const getUserAccess = async (): Promise<boolean> => {
     const { status: existingStatus } =
       await Location.getForegroundPermissionsAsync();
@@ -245,7 +248,7 @@ export default function HomeScreen() {
       </View>
 
       <View style={styles.content}>
-        {/*Welcome*/}
+        {/*Welcome section*/}
         <Text style={styles.greeting}>
           Hej, <Text style={styles.greetingName}>{name}</Text> Hvad leder du
           efter i dag?
@@ -274,6 +277,7 @@ export default function HomeScreen() {
             </Text>
           </TouchableOpacity>
 
+          {/*Category section*/}
           {categories.map((category) => (
             <TouchableOpacity
               key={category.id}

@@ -37,6 +37,7 @@ const STATUS_COLORS: Record<string, string> = {
   GIVEN_AWAY: "#32719b",
 };
 
+// Filter used for updating UI based on item status
 type FilterValue = (typeof FILTER_OPTIONS)[number]["value"];
 
 export default function ProfileScreen() {
@@ -184,7 +185,7 @@ export default function ProfileScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Menu modal */}
+      {/* Menu modal - profile section */}
       <Modal
         visible={menuOpen}
         transparent
@@ -270,7 +271,7 @@ export default function ProfileScreen() {
       </Modal>
 
       <View style={styles.profileCard}>
-        {/* profile picture */}
+        {/* Profile section */}
         <TouchableOpacity
           onPress={handlePickImage}
           style={styles.profileImageWrapper}
@@ -332,7 +333,7 @@ export default function ProfileScreen() {
         </View>
       </View>
 
-      {/* Dropdown modal */}
+      {/* Dropdown modal (for items) */}
       <Modal
         visible={dropdownOpen}
         transparent

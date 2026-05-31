@@ -1,3 +1,4 @@
+// NotificationContexts - All components read from the same place
 import { Notification } from "@/interfaces/notification";
 import { getFetch, patchFetch } from "@/utils/fetchUtils";
 import {
@@ -23,6 +24,7 @@ const NotificationContext = createContext<NotificationContextType>({
   markAllAsRead: async () => {},
 });
 
+// This components wraps the app (/tabs/_layout.tsx)
 export function NotificationProvider({
   children,
 }: {
@@ -59,6 +61,7 @@ export function NotificationProvider({
     return () => clearInterval(interval);
   }, [refresh]);
 
+  // Calls refresh as soon as the app is mounted (so we doesn't have to wait 30 seconds)
   useEffect(() => {
     const sub = AppState.addEventListener("change", (state) => {
       if (state === "active") refresh();

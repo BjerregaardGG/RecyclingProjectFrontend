@@ -1,9 +1,10 @@
+// Mascot component - used for success, error & loading
 import Svg, {
-  Path,
-  Rect,
   Circle,
   Ellipse,
   Line,
+  Path,
+  Rect,
   Text as SvgText,
 } from "react-native-svg";
 
@@ -14,15 +15,18 @@ type MascotProps = {
   size?: number;
 };
 
-// Delt grundfigur: skygge, blad, kasse, arme og ben.
-// Ansigt og arm-retning varierer per mood og rendres ovenpå.
 function MascotBase({ children }: { children: React.ReactNode }) {
   return (
     <>
-      {/* Skygge */}
-      <Ellipse cx={190} cy={300} rx={95} ry={14} fill="#3a7d3a" opacity={0.12} />
+      <Ellipse
+        cx={190}
+        cy={300}
+        rx={95}
+        ry={14}
+        fill="#3a7d3a"
+        opacity={0.12}
+      />
 
-      {/* Blad + stilk */}
       <Path
         d="M150 75 Q150 50 168 42 Q172 28 184 32 Q190 18 200 28 Q214 26 212 42 Q230 46 228 68"
         fill="none"
@@ -45,7 +49,6 @@ function MascotBase({ children }: { children: React.ReactNode }) {
         strokeLinecap="round"
       />
 
-      {/* Kasse */}
       <Path
         d="M118 110 L190 85 L262 110 L262 230 Q262 242 250 242 L130 242 Q118 242 118 230 Z"
         fill="#d4a574"
@@ -77,7 +80,6 @@ function MascotBase({ children }: { children: React.ReactNode }) {
         strokeLinecap="round"
       />
 
-      {/* Ben */}
       <Path
         d="M150 242 L150 272 Q150 280 158 280 L168 280 Q176 280 176 272 L176 242 Z"
         fill="#c89860"
@@ -87,7 +89,6 @@ function MascotBase({ children }: { children: React.ReactNode }) {
         fill="#c89860"
       />
 
-      {/* Mood-specifikt indhold (ansigt + arme) */}
       {children}
     </>
   );
@@ -96,7 +97,6 @@ function MascotBase({ children }: { children: React.ReactNode }) {
 function HappyFace() {
   return (
     <>
-      {/* Arme ud til siden */}
       <Path
         d="M118 180 Q92 172 80 148"
         fill="none"
@@ -114,7 +114,6 @@ function HappyFace() {
       <Circle cx={80} cy={146} r={9} fill="#c89860" />
       <Circle cx={301} cy={166} r={9} fill="#d4a574" />
 
-      {/* Ansigt */}
       <Rect x={148} y={158} width={22} height={22} rx={11} fill="#3a3028" />
       <Rect x={210} y={158} width={22} height={22} rx={11} fill="#3a3028" />
       <Circle cx={156} cy={165} r={4} fill="#fff" />
@@ -135,7 +134,6 @@ function HappyFace() {
 function SadFace() {
   return (
     <>
-      {/* Arme hænger ned */}
       <Path
         d="M118 180 Q94 192 84 212"
         fill="none"
@@ -153,7 +151,6 @@ function SadFace() {
       <Circle cx={84} cy={214} r={9} fill="#c89860" />
       <Circle cx={296} cy={214} r={9} fill="#d4a574" />
 
-      {/* Ansigt */}
       <Path
         d="M148 163 Q159 156 170 163"
         fill="none"
@@ -193,7 +190,6 @@ function SadFace() {
 function ExcitedFace() {
   return (
     <>
-      {/* Gnister over bladet */}
       <Path
         d="M134 36 L137 46 M246 36 L243 46 M190 24 L190 36"
         stroke="#f5b400"
@@ -201,7 +197,6 @@ function ExcitedFace() {
         strokeLinecap="round"
       />
 
-      {/* Arme strakt op */}
       <Path
         d="M118 180 Q92 164 84 138"
         fill="none"
@@ -219,15 +214,11 @@ function ExcitedFace() {
       <Circle cx={84} cy={136} r={9} fill="#c89860" />
       <Circle cx={296} cy={136} r={9} fill="#d4a574" />
 
-      {/* Ansigt — stjerneøjne + åben mund */}
       <Path d="M150 158 L166 168 L150 178Z" fill="#3a3028" />
       <Path d="M230 158 L214 168 L230 178Z" fill="#3a3028" />
       <Circle cx={140} cy={192} r={10} fill="#e89a8a" opacity={0.65} />
       <Circle cx={240} cy={192} r={10} fill="#e89a8a" opacity={0.65} />
-      <Path
-        d="M168 194 Q190 220 212 194 Q190 208 168 194Z"
-        fill="#3a3028"
-      />
+      <Path d="M168 194 Q190 220 212 194 Q190 208 168 194Z" fill="#3a3028" />
     </>
   );
 }
@@ -235,7 +226,6 @@ function ExcitedFace() {
 function SleepingFace() {
   return (
     <>
-      {/* Arme hviler ned */}
       <Path
         d="M118 180 Q94 190 84 208"
         fill="none"
@@ -253,7 +243,6 @@ function SleepingFace() {
       <Circle cx={84} cy={210} r={9} fill="#c89860" />
       <Circle cx={296} cy={210} r={9} fill="#d4a574" />
 
-      {/* Ansigt — lukkede øjne + snorkeboble */}
       <Path
         d="M148 169 Q159 176 170 169"
         fill="none"
@@ -272,7 +261,6 @@ function SleepingFace() {
       <Circle cx={238} cy={192} r={9} fill="#e89a8a" opacity={0.5} />
       <Ellipse cx={190} cy={202} rx={8} ry={11} fill="#3a3028" />
 
-      {/* z z z */}
       <SvgText x={276} y={130} fill="#8fb4d9" fontSize={14} fontWeight="500">
         z
       </SvgText>
@@ -295,7 +283,6 @@ const FACES: Record<MascotMood, () => React.JSX.Element> = {
 
 export function Mascot({ mood, size = 160 }: MascotProps) {
   const Face = FACES[mood];
-  // Original viewBox er 380 bred. Højde holdes proportional.
   const height = (size / 380) * 320;
 
   return (

@@ -106,6 +106,7 @@ export default function RegisterScreen() {
 
           {error ? <Text style={styles.error}>{error}</Text> : null}
 
+          {/* Register form */}
           <TextInput
             style={styles.input}
             placeholder="Email"

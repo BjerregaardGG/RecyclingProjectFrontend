@@ -1,6 +1,7 @@
-import { View, Text, StyleSheet, Animated } from "react-native";
-import { useEffect, useRef } from "react";
+// Loading component - uses the sleeping Mascot component
 import { Mascot } from "@/components/Mascot";
+import { useEffect, useRef } from "react";
+import { Animated, StyleSheet, Text, View } from "react-native";
 
 type Props = {
   message?: string;

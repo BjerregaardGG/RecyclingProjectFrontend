@@ -1,14 +1,14 @@
-import { Tabs } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
 import {
   NotificationProvider,
   useNotifications,
 } from "@/contexts/NotificationContexts";
+import { Ionicons } from "@expo/vector-icons";
+import { Tabs } from "expo-router";
 
 function TabsNavigator() {
   const { unreadCount } = useNotifications();
   return (
-    <Tabs // for all tabs
+    <Tabs
       screenOptions={{
         tabBarActiveTintColor: "#3a7d3a",
         tabBarInactiveTintColor: "#aaa",
@@ -69,6 +69,7 @@ function TabsNavigator() {
   );
 }
 
+// NotificationContexts - updates the notification count for all tabs
 export default function TabLayout() {
   return (
     <NotificationProvider>

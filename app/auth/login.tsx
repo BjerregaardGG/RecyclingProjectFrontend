@@ -49,6 +49,7 @@ export default function LoginScreen() {
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
+      {/* Login form */}
       <TextInput
         style={styles.input}
         placeholder="Email"

@@ -1,3 +1,4 @@
+// fetchUtils for get, post, patch and delete
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export async function getFetch(endpoint: string): Promise<Response> {

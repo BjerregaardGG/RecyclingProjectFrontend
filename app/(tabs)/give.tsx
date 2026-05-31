@@ -1,4 +1,4 @@
-// This is the tab for uploading snatches 
+// This is the tab for uploading snatches
 import InfoTooltip from "@/components/InfoToolTip";
 import { Mascot } from "@/components/Mascot";
 import { Category } from "@/interfaces/category";
@@ -104,6 +104,7 @@ export default function GiveScreen() {
 
     setLoading(true);
 
+    // New item object
     const newItem = {
       name: name,
       description: description,
@@ -128,6 +129,7 @@ export default function GiveScreen() {
         return;
       }
 
+      // Resets all field after upload
       setName("");
       setDescription("");
       setImage(null);
@@ -186,7 +188,7 @@ export default function GiveScreen() {
               )}
             </TouchableOpacity>
 
-            {/* Navn */}
+            {/* Item name*/}
             <Text style={styles.label}>
               Titel <Text style={styles.required}>*</Text>
             </Text>

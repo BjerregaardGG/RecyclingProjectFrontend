@@ -1,6 +1,7 @@
-import { useState } from "react";
-import { Modal, View, Text, TouchableOpacity, StyleSheet } from "react-native";
+// InfoToolTip component - used for explaining location details
 import { Ionicons } from "@expo/vector-icons";
+import { useState } from "react";
+import { Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 type Props = {
   title: string;

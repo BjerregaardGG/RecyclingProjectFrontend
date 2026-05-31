@@ -28,7 +28,7 @@ export default function PickupDetailScreen() {
   const [otherUser, setOtherUser] = useState<User | null>(null);
   const [average, setAverage] = useState(0);
 
-  // forces re-render every minute so that time remaining updates
+  // forces re-render every minute so that 'time remaining' updates
   useCountdown();
 
   useFocusEffect(
@@ -183,15 +183,14 @@ export default function PickupDetailScreen() {
 
   return (
     <ScrollView style={styles.container}>
-      {/* Tilbage knap */}
       <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
         <Ionicons name="arrow-back-outline" size={24} color="#fff" />
       </TouchableOpacity>
 
-      {/* Billede */}
+      {/* Image*/}
       <Image source={{ uri: request.itemImage }} style={styles.image} />
 
-      {/* Hoved sektion */}
+      {/* Main section */}
       <View style={styles.section}>
         <View style={styles.toolTip}>
           <Text style={styles.name}>{request.itemName}</Text>
@@ -273,7 +272,7 @@ export default function PickupDetailScreen() {
         </View>
       </TouchableOpacity>
 
-      {/* Adresse sektion (kun når accepteret) */}
+      {/* Adress section - ONLY if accepted */}
       {isAccepted && request.pickupAddress && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Afhentningsadresse</Text>
@@ -284,7 +283,7 @@ export default function PickupDetailScreen() {
         </View>
       )}
 
-      {/* Knapper baseret på status */}
+      {/* Buttons based on status */}
       <View style={styles.buttonSection}>
         {isPending && isOwner && (
           <>

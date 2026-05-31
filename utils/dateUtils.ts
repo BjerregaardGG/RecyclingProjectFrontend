@@ -1,5 +1,7 @@
+// dateUtils
 import { useEffect, useState } from "react";
 
+// Takes a date in the past and returns a string defining how long time since
 export const formatRelativeTime = (isoString: string): string => {
   const now = new Date();
   const then = new Date(isoString);
@@ -21,6 +23,7 @@ export const formatRelativeTime = (isoString: string): string => {
   });
 };
 
+// Takes a date in the future and returns a string defining how long time left
 export const getTimeRemaining = (expiresAt: string): string => {
   const now = new Date().getTime();
   const expires = new Date(expiresAt).getTime();
@@ -37,6 +40,7 @@ export const getTimeRemaining = (expiresAt: string): string => {
   return `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 };
 
+// Custom hook that forces React to render every second
 export const useCountdown = () => {
   const [, setTick] = useState(0);
 

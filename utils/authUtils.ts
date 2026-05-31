@@ -1,6 +1,7 @@
-import { Alert } from "react-native";
+// authUtils - used for the auth sites
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Router } from "expo-router";
+import { Alert } from "react-native";
 
 export function verifyfirstAndSecondPassword(
   firstPassword: string,

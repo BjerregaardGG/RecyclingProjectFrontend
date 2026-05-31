@@ -71,7 +71,7 @@ export default function ReviewScreen() {
         <Text style={styles.title}>Hvordan var oplevelsen?</Text>
         <Text style={styles.subtitle}>Vælg antal stjerner</Text>
 
-        {/* Stjerner */}
+        {/* Stars */}
         <View style={styles.stars}>
           {[1, 2, 3, 4, 5].map((n) => (
             <TouchableOpacity

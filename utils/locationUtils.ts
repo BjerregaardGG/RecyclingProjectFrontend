@@ -1,3 +1,4 @@
+// LocationUtils - used on the frontPage to calculate nearest snatches
 export interface PostalCode {
   tekst: string;
   postnummer: {
@@ -21,6 +22,7 @@ export interface Address {
   };
 }
 
+// Searches postalCodes from an extern API with the specific postal code query
 export async function searchPostalCodes(query: string): Promise<PostalCode[]> {
   if (!query || query.length < 2) return [];
 
@@ -31,6 +33,7 @@ export async function searchPostalCodes(query: string): Promise<PostalCode[]> {
   return data;
 }
 
+// Searches adresses from an extern API with the specific adress query
 export async function searchAdresses(query: string): Promise<Address[]> {
   if (!query || query.length < 2) return [];
 
@@ -42,6 +45,7 @@ export async function searchAdresses(query: string): Promise<Address[]> {
   return result;
 }
 
+// Takes to coordinates and returns the distance in KM
 export function getDistanceInKm(
   lat1: number,
   lon1: number,
@@ -61,6 +65,7 @@ export function getDistanceInKm(
   return R * c;
 }
 
+// Takes the distance in km and formats it to a string
 function formatDistance(distanceInKm: number): string {
   const meters = Math.round(distanceInKm * 1000);
 
@@ -71,6 +76,7 @@ function formatDistance(distanceInKm: number): string {
   return `${distanceInKm.toFixed(1)} km væk`;
 }
 
+// Convenience function that uses the formatDistance() and getDistanceInKm() functions
 export function calculateDistance(
   lat1: number,
   lon1: number,
