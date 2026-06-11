@@ -85,3 +85,8 @@ export function calculateDistance(
 ): string {
   return formatDistance(getDistanceInKm(lat1, lon1, lat2, lon2));
 }
+
+export function getDistanceColor(distanceKm: number): string {
+  if (distanceKm < 5) return "#3a7d3a";
+  return "#e8a13f";
+}

@@ -5,7 +5,11 @@ import { useNotifications } from "@/contexts/NotificationContexts";
 import { Category } from "@/interfaces/category";
 import { Item } from "@/interfaces/item";
 import { deleteFetch, getFetch, postFetch } from "@/utils/fetchUtils";
-import { calculateDistance, getDistanceInKm } from "@/utils/locationUtils";
+import {
+  calculateDistance,
+  getDistanceColor,
+  getDistanceInKm,
+} from "@/utils/locationUtils";
 import { Ionicons } from "@expo/vector-icons";
 import * as Location from "expo-location";
 import { useFocusEffect, useRouter } from "expo-router";
@@ -359,7 +363,25 @@ export default function HomeScreen() {
                   </Text>
                   <View style={styles.cardMeta}>
                     <View
-                      style={locationAccess ? styles.dot : styles.dotGray}
+                      style={[
+                        styles.dot,
+                        {
+                          backgroundColor:
+                            locationAccess &&
+                            userLocation &&
+                            item.latitude &&
+                            item.longitude
+                              ? getDistanceColor(
+                                  getDistanceInKm(
+                                    userLocation.latitude,
+                                    userLocation.longitude,
+                                    item.latitude,
+                                    item.longitude,
+                                  ),
+                                )
+                              : "#8a8a8a",
+                        },
+                      ]}
                     />
                     <Text style={styles.cardDistance}>
                       {userLocation && item.latitude && item.longitude
@@ -534,12 +556,6 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     backgroundColor: "#3a7d3a",
-  },
-  dotGray: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "#8a8a8a",
   },
   cardDistance: {
     fontSize: 11,
