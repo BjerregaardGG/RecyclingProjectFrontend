@@ -59,6 +59,7 @@ export default function ItemScreen() {
       if (!response.ok) return;
       const data = await response.json();
       setItem(data);
+      console.log(item);
     } catch (error) {
       console.log(error);
     }
@@ -367,7 +368,24 @@ export default function ItemScreen() {
         </View>
       </TouchableOpacity>
 
-      <View style={styles.buttonSection}>{renderButton()}</View>
+      <View style={styles.buttonSection}>
+        {item.status === "AVAILABLE" && item.activeRequestCount > 0 && (
+          <View style={styles.queueBadge}>
+            <Ionicons name="people-outline" size={16} color="#3a7d3a" />
+            <Text style={styles.queueText}>
+              {item.userId === loggedInUserData.id
+                ? item.activeRequestCount === 1
+                  ? "1 person har anmodet om denne snatch"
+                  : `${item.activeRequestCount} personer har anmodet om denne snatch`
+                : item.activeRequestCount === 1
+                  ? "1 person i kø"
+                  : `${item.activeRequestCount} personer i kø`}
+            </Text>
+          </View>
+        )}
+
+        {renderButton()}
+      </View>
     </ScrollView>
   );
 }
@@ -562,5 +580,21 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 6,
     paddingTop: 4,
+  },
+  queueBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: "#f0f5f0",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 12,
+    justifyContent: "center",
+    marginBottom: 12,
+  },
+  queueText: {
+    fontSize: 14,
+    color: "#3a7d3a",
+    fontWeight: "500",
   },
 });

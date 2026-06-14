@@ -13,4 +13,5 @@ export interface Item {
   likeCount: number;
   isLikedByCurrentUser: boolean;
   hasActiveRequest: boolean;
+  activeRequestCount: number;
 }
