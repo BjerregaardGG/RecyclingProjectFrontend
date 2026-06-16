@@ -322,6 +322,7 @@ export default function PickupDetailScreen() {
                       ? request.requesterName
                       : request.ownerName,
                     otherImage: otherUser.image,
+                    otherUserId: isOwner ? request.requesterId.toString() : request.ownerId.toString(),
                     pickupImage: request.itemImage,
                     pickupTitle: request.itemName,
                   },
